@@ -9,8 +9,8 @@ const YEAR_VALS = [10, 20, 30, 40];
 // --- Visual Components ---
 
 const Infographic = ({ t }: { t: any }) => (
-  <div className="flex justify-center my-4 w-full">
-    <svg className="w-full h-auto max-h-[280px]" viewBox="-130 -130 260 220" preserveAspectRatio="xMidYMid meet">
+  <div className="flex justify-center my-2 w-full">
+    <svg className="w-full h-auto max-h-[260px]" viewBox="-130 -130 260 250" preserveAspectRatio="xMidYMid meet">
       <defs>
         <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
           <path d="M0,0 L0,6 L9,3 z" fill="#B8860B" />
@@ -219,7 +219,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
 
               <div className="grid grid-cols-12 gap-8 h-full pb-8">
                 {/* Left Column */}
-                <div className="col-span-4 bg-slate-50 p-5 rounded-xl border border-slate-200 h-[140mm] flex flex-col justify-between">
+                <div className="col-span-4 bg-slate-50 p-5 rounded-xl border border-slate-200 h-[150mm] flex flex-col justify-between">
                   <div>
                     <h2 className="text-xs font-bold text-amber-600 uppercase mb-3 border-b border-amber-200 pb-1">{t.clientOverview}</h2>
                     <div className="mb-4">
