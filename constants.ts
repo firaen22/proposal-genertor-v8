@@ -21,13 +21,13 @@ export const INITIAL_DATA: ProposalData = {
   },
   scenarioC: {
     goals: [
-      { policyYearStart: 19, policyYearEnd: 22, amount: 95062, cumulative: 380248, remainingValue: 1099791, purpose: "大学教育基金 (University Education)", generation: "Gen 1", genLabel: "第一代: 创富" },
-      { policyYearStart: 23, policyYearEnd: 23, amount: 124570, cumulative: 504818, remainingValue: 777940, purpose: "外国升学基金 (Overseas Studies)", generation: "Gen 1", genLabel: "第一代: 创富" },
-      { policyYearStart: 30, policyYearEnd: 30, amount: 198252, cumulative: 703070, remainingValue: 1021397, purpose: "结婚/创业金 (Marriage/Startup)", generation: "Gen 1", genLabel: "第一代: 创富" },
-      { policyYearStart: 65, policyYearEnd: 85, amount: 2461159, cumulative: 52387409, remainingValue: 4801944, purpose: "退休基金 (Retirement Fund)", generation: "Gen 1", genLabel: "第一代: 享受" },
-      { policyYearStart: 80, policyYearEnd: 80, amount: 7621122, cumulative: 60008531, remainingValue: 9537610, purpose: "传承予子女 (Gift to Descendants)", generation: "Gen 2", genLabel: "第二代: 传承" },
-      { policyYearStart: 90, policyYearEnd: 90, amount: 15995028, cumulative: 76003559, remainingValue: 20034946, purpose: "家族遗产 (Compassionate Legacy)", generation: "Gen 3", genLabel: "第三代: 永续" },
-      { policyYearStart: 100, policyYearEnd: 100, amount: 32461656, cumulative: 108465215, remainingValue: 40676436, purpose: "百年基业 (Centennial Legacy)", generation: "Gen 3", genLabel: "第三代: 永续" },
+      { policyYearStart: 19, policyYearEnd: 22, amount: 95062, cumulative: 380248, remainingValue: 1099791, purpose: "大学教育基金", generation: "Gen 1", genLabel: "第一代: 创富" },
+      { policyYearStart: 23, policyYearEnd: 23, amount: 124570, cumulative: 504818, remainingValue: 777940, purpose: "外国升学基金", generation: "Gen 1", genLabel: "第一代: 创富" },
+      { policyYearStart: 30, policyYearEnd: 30, amount: 198252, cumulative: 703070, remainingValue: 1021397, purpose: "结婚/创业金", generation: "Gen 1", genLabel: "第一代: 创富" },
+      { policyYearStart: 65, policyYearEnd: 85, amount: 2461159, cumulative: 52387409, remainingValue: 4801944, purpose: "退休基金", generation: "Gen 1", genLabel: "第一代: 享受" },
+      { policyYearStart: 80, policyYearEnd: 80, amount: 7621122, cumulative: 60008531, remainingValue: 9537610, purpose: "传承予子女", generation: "Gen 2", genLabel: "第二代: 传承" },
+      { policyYearStart: 90, policyYearEnd: 90, amount: 15995028, cumulative: 76003559, remainingValue: 20034946, purpose: "家族遗产", generation: "Gen 3", genLabel: "第三代: 永续" },
+      { policyYearStart: 100, policyYearEnd: 100, amount: 32461656, cumulative: 108465215, remainingValue: 40676436, purpose: "百年基业", generation: "Gen 3", genLabel: "第三代: 永续" },
     ]
   },
   promo: {
@@ -40,13 +40,13 @@ export const INITIAL_DATA: ProposalData = {
 // Map for translating default content data (like Plan Name and Goals) from Simplified to Traditional
 export const HK_DATA_MAP: Record<string, string> = {
   "环宇盈活储蓄保险计划": "環宇盈活儲蓄保險計劃",
-  "大学教育基金 (University Education)": "大學教育基金 (University Education)",
-  "外国升学基金 (Overseas Studies)": "外國升學基金 (Overseas Studies)",
-  "结婚/创业金 (Marriage/Startup)": "結婚/創業金 (Marriage/Startup)",
-  "退休基金 (Retirement Fund)": "退休基金 (Retirement Fund)",
-  "传承予子女 (Gift to Descendants)": "傳承予子女 (Gift to Descendants)",
-  "家族遗产 (Compassionate Legacy)": "家族遺產 (Compassionate Legacy)",
-  "百年基业 (Centennial Legacy)": "百年基業 (Centennial Legacy)"
+  "大学教育基金": "大學教育基金",
+  "外国升学基金": "外國升學基金",
+  "结婚/创业金": "結婚/創業金",
+  "退休基金": "退休基金",
+  "传承予子女": "傳承予子女",
+  "家族遗产": "家族遺產",
+  "百年基业": "百年基業"
 };
 
 export const TRANSLATIONS = {

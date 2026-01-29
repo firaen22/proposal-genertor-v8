@@ -10,7 +10,7 @@ const YEAR_VALS = [10, 20, 30, 40];
 
 const Infographic = ({ t }: { t: any }) => (
   <div className="flex justify-center my-4 w-full">
-    <svg className="w-full h-auto max-h-[250px]" viewBox="-130 -130 260 220" preserveAspectRatio="xMidYMid meet">
+    <svg className="w-full h-auto max-h-[280px]" viewBox="-130 -130 260 220" preserveAspectRatio="xMidYMid meet">
       <defs>
         <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
           <path d="M0,0 L0,6 L9,3 z" fill="#B8860B" />
@@ -23,23 +23,23 @@ const Infographic = ({ t }: { t: any }) => (
 
       {/* Center Circle: Radius 40 */}
       <circle cx="0" cy="0" r="40" fill="#FFF8DC" stroke="#B8860B" strokeWidth="2" />
-      <text x="0" y="-6" textAnchor="middle" fontSize="14" fontWeight="bold" fill="#333" fontFamily="Noto Serif, serif">{t.wealthLegacy.substring(0, 2)}</text>
-      <text x="0" y="12" textAnchor="middle" fontSize="14" fontWeight="bold" fill="#333" fontFamily="Noto Serif, serif">{t.wealthLegacy.substring(2)}</text>
+      <text x="0" y="-6" textAnchor="middle" fontSize="15" fontWeight="bold" fill="#333" fontFamily="Noto Serif, serif">{t.wealthLegacy.substring(0, 2)}</text>
+      <text x="0" y="12" textAnchor="middle" fontSize="15" fontWeight="bold" fill="#333" fontFamily="Noto Serif, serif">{t.wealthLegacy.substring(2)}</text>
 
       {/* Top Circle: Radius 35 */}
       <circle cx="0" cy="-90" r="35" fill="#212C3C" />
-      <text x="0" y="-95" textAnchor="middle" fontSize="11" fill="white" fontFamily="Noto Sans TC, sans-serif">{t.wealthGrowth.substring(0, 2)}</text>
-      <text x="0" y="-81" textAnchor="middle" fontSize="11" fill="white" fontFamily="Noto Sans TC, sans-serif">{t.wealthGrowth.substring(2)}</text>
+      <text x="0" y="-95" textAnchor="middle" fontSize="12" fill="white" fontFamily="Noto Sans TC, sans-serif">{t.wealthGrowth.substring(0, 2)}</text>
+      <text x="0" y="-81" textAnchor="middle" fontSize="12" fill="white" fontFamily="Noto Sans TC, sans-serif">{t.wealthGrowth.substring(2)}</text>
 
       {/* Left Circle: Radius 35 */}
       <circle cx="-78" cy="55" r="35" fill="#212C3C" />
-      <text x="-78" y="50" textAnchor="middle" fontSize="11" fill="white" fontFamily="Noto Sans TC, sans-serif">{t.flexibleLegacy.substring(0, 2)}</text>
-      <text x="-78" y="64" textAnchor="middle" fontSize="11" fill="white" fontFamily="Noto Sans TC, sans-serif">{t.flexibleLegacy.substring(2)}</text>
+      <text x="-78" y="50" textAnchor="middle" fontSize="12" fill="white" fontFamily="Noto Sans TC, sans-serif">{t.flexibleLegacy.substring(0, 2)}</text>
+      <text x="-78" y="64" textAnchor="middle" fontSize="12" fill="white" fontFamily="Noto Sans TC, sans-serif">{t.flexibleLegacy.substring(2)}</text>
 
       {/* Right Circle: Radius 35 */}
       <circle cx="78" cy="55" r="35" fill="#212C3C" />
-      <text x="78" y="50" textAnchor="middle" fontSize="11" fill="white" fontFamily="Noto Sans TC, sans-serif">{t.currencyConfig.substring(0, 2)}</text>
-      <text x="78" y="64" textAnchor="middle" fontSize="11" fill="white" fontFamily="Noto Sans TC, sans-serif">{t.currencyConfig.substring(2)}</text>
+      <text x="78" y="50" textAnchor="middle" fontSize="12" fill="white" fontFamily="Noto Sans TC, sans-serif">{t.currencyConfig.substring(0, 2)}</text>
+      <text x="78" y="64" textAnchor="middle" fontSize="12" fill="white" fontFamily="Noto Sans TC, sans-serif">{t.currencyConfig.substring(2)}</text>
     </svg>
   </div>
 );

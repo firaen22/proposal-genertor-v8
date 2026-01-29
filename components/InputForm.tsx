@@ -3,13 +3,13 @@ import { ProposalData, ScenarioValue, ScenarioBValue, GoalEvent, Language } from
 import { TRANSLATIONS, HK_DATA_MAP } from '../constants';
 
 const GOAL_OPTIONS = [
-  "大学教育基金 (University Education)",
-  "外国升学基金 (Overseas Studies)",
-  "结婚/创业金 (Marriage/Startup)",
-  "退休基金 (Retirement Fund)",
-  "传承予子女 (Gift to Descendants)",
-  "家族遗产 (Compassionate Legacy)",
-  "百年基业 (Centennial Legacy)"
+  "大学教育基金",
+  "外国升学基金",
+  "结婚/创业金",
+  "退休基金",
+  "传承予子女",
+  "家族遗产",
+  "百年基业"
 ];
 
 const YEARS_KEYS = ['year10', 'year20', 'year30', 'year40'] as const;
