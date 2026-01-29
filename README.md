@@ -1,20 +1,54 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Private Bank Proposal Generator (v8)
 
-# Run and deploy your AI Studio app
+A high-fidelity proposal generator for private wealth advisors, featuring dual-scenario analysis and print-ready PDF generation.
 
-This contains everything you need to run your app locally.
+## 🚀 Quick Start
 
-View your app in AI Studio: https://ai.studio/apps/drive/1Ly4YeypUcZ2QD0R3497FW5s3NxIyAP29
+### Prerequisites
+- Node.js (v18+)
+- npm
 
-## Run Locally
+### Installation
+```bash
+npm install
+```
 
-**Prerequisites:**  Node.js
+### Development
+```bash
+npm run dev
+```
 
+### Build
+```bash
+npm run build
+```
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## 🛠 Features
+
+- **Dual Scenario Analysis**: Compare different wealth preservation strategies (A/B testing).
+- **Vector Infographics**: High-quality SVG visualizations for core values.
+- **Print-Ready PDF**: A4 landscape formatted PDF generation using `html2pdf.js`.
+- **Multi-language Support**: Seamless switching between Simplified and Traditional Chinese.
+
+## 📦 Tech Stack
+
+- **Framework**: React 19 + TypeScript
+- **Bundler**: Vite 6
+- **Styling**: Tailwind CSS
+- **AI Engine**: Google Gemini Pro (optional via `geminiService.ts`)
+- **PDF Generation**: `html2pdf.js`
+
+## 🚀 Deployment
+
+### GitHub Actions
+The project includes a CI/CD pipeline in `.github/workflows/deploy.yml`. 
+- **Requirement**: Set `GEMINI_API_KEY` in GitHub Repo Secrets if using AI features.
+- **Workflow**: Automated build and deploy to `gh-pages` on every push to `main` or `master`.
+
+### Manual Deployment
+```bash
+npm run deploy
+```
+
+## 📄 License
+Private and Confidential. (c) 2026 Private Bank.

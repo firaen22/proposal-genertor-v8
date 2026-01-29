@@ -132,38 +132,85 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
 
   const generatePDF = async () => {
     setIsPdfMode(true);
-    
-    // Wait for state update and DOM reflow
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    // Wait for fonts to load (critical for PDF)
+    // Longer wait for layout and sub-component stability
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
     try {
       await document.fonts.ready;
     } catch (e) {
       console.warn("Font loading check failed", e);
     }
-    
-    // Additional small buffer for complex layout
-    await new Promise(resolve => setTimeout(resolve, 200));
 
-    const element = contentRef.current;
-    const opt = {
-      margin: 0,
-      filename: `${data.client.name}_Proposal.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { 
-        scale: 2, 
-        useCORS: true,
-        windowWidth: 1123, // A4 landscape px at 96 DPI
-        scrollY: 0
-      },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
-    };
-    
-    // @ts-ignore
-    html2pdf().set(opt).from(element).save().then(() => {
+    const pages = contentRef.current?.querySelectorAll('.pdf-page');
+    if (!pages || pages.length === 0) {
       setIsPdfMode(false);
+      return;
+    }
+
+    // @ts-ignore
+    const pdf = new jspdf.jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4'
     });
+
+    for (let i = 0; i < pages.length; i++) {
+      const page = pages[i] as HTMLElement;
+      // @ts-ignore
+      const canvas = await html2canvas(page, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        width: 1123,
+        height: 794,
+        windowWidth: 1122,
+        letterRendering: true, // Attempt to stabilize character placement
+        onclone: (doc) => {
+          const s = doc.createElement('style');
+          s.innerHTML = `
+            * { 
+              transition: none !important; 
+              animation: none !important; 
+              font-kerning: none !important;
+              letter-spacing: 0 !important;
+            }
+            .pdf-page { width: 1123px !important; height: 794px !important; padding: 15mm !important; }
+            td, th { 
+              line-height: 1.4 !important; 
+              vertical-align: middle !important;
+              padding-top: 4px !important;
+              padding-bottom: 4px !important;
+            }
+            .line-clamp-1 { -webkit-line-clamp: unset !important; display: block !important; overflow: visible !important; }
+            /* Stabilize flex items that might shift */
+            .flex { display: flex !important; }
+            .items-center { align-items: center !important; }
+            /* Force badge text alignment */
+            span[class*="rounded"] { 
+              display: inline-block !important; 
+              line-height: 1 !important; 
+              vertical-align: baseline !important;
+            }
+            /* Stabilize dotted lines */
+            .border-dotted { border-style: solid !important; border-bottom-width: 1px !important; opacity: 0.3 !important; }
+            /* Explicit Font Family */
+            * { font-family: 'Noto Sans', 'Noto Sans TC', sans-serif !important; }
+            .serif-font { font-family: 'Noto Serif', 'Noto Sans TC', serif !important; }
+            span, div, td { white-space: nowrap; }
+            .whitespace-normal { white-space: normal !important; }
+          `;
+          doc.head.appendChild(s);
+        }
+      });
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.98);
+
+      if (i > 0) pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210);
+    }
+
+    pdf.save(`${data.client.name}_Proposal.pdf`);
+    setIsPdfMode(false);
   };
 
   return (
@@ -185,27 +232,27 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
             <input type="range" min="0.5" max="1.2" step="0.1" value={scale} onChange={(e) => setScale(parseFloat(e.target.value))} className="w-24 cursor-pointer accent-amber-600" />
           </div>
           <button onClick={generatePDF} className="bg-amber-600 hover:bg-amber-700 text-white text-sm px-4 py-2 rounded shadow font-bold flex items-center gap-2 transition-colors">
-             {t.downloadPDF}
+            {t.downloadPDF}
           </button>
         </div>
       </div>
 
       {/* Preview Viewport */}
       <div className="flex-1 overflow-auto flex justify-center items-start py-8">
-        <div style={{ 
-            transform: isPdfMode ? 'none' : `scale(${scale})`, 
-            transformOrigin: 'top center',
-            transition: 'transform 0.2s ease-out'
-          }}>
-          
-          <div 
+        <div style={{
+          transform: isPdfMode ? 'none' : `scale(${scale})`,
+          transformOrigin: 'top center',
+          transition: 'transform 0.2s ease-out'
+        }}>
+
+          <div
             ref={contentRef}
-            className={`flex flex-col items-center ${isPdfMode ? 'gap-0' : 'gap-8'}`}
-            style={{ width: '297mm' }} 
+            className={`flex flex-col items-center print-container ${isPdfMode ? 'gap-0' : 'gap-8'}`}
+            style={{ width: '297mm' }}
           >
             {/* --- PAGE 1 --- */}
-            <div 
-              className={`relative bg-white ${isPdfMode ? '' : 'shadow-2xl'} overflow-hidden`}
+            <div
+              className={`relative bg-white ${isPdfMode ? '' : 'shadow-2xl'} overflow-hidden pdf-page`}
               style={{ width: '297mm', height: '210mm', padding: '15mm' }}
             >
               <PageHeader t={t} />
@@ -266,7 +313,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
                   {/* Scenario A */}
                   <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
                     <div className="bg-slate-50 px-4 py-2 border-b border-slate-200">
-                       <h3 className="text-base font-bold text-slate-800">{t.scenarioA}</h3>
+                      <h3 className="text-base font-bold text-slate-800">{t.scenarioA}</h3>
                     </div>
                     {/* Increased text-sm to text-base (16px) for visibility */}
                     <table className="w-full text-base text-right">
@@ -332,8 +379,8 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
             </div>
 
             {/* --- PAGE 2 --- */}
-            <div 
-              className={`relative bg-white ${isPdfMode ? '' : 'shadow-2xl'} overflow-hidden`}
+            <div
+              className={`relative bg-white ${isPdfMode ? '' : 'shadow-2xl'} overflow-hidden pdf-page`}
               style={{ width: '297mm', height: '210mm', padding: '15mm' }}
             >
               <PageHeader t={t} />
@@ -364,7 +411,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
                       const startAge = data.client.age + goal.policyYearStart;
                       const endAge = data.client.age + goal.policyYearEnd;
                       const totalReturn = getReturnRate((goal.cumulative || 0) + (goal.remainingValue || 0));
-                      
+
                       return (
                         <tr key={idx} className="hover:bg-slate-50 transition-colors">
                           <td className="p-2 font-bold text-slate-900">
@@ -374,7 +421,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
                             {t.startYear} {goal.policyYearStart === goal.policyYearEnd ? goal.policyYearStart : `${goal.policyYearStart}-${goal.policyYearEnd}`} {t.year}
                           </td>
                           <td className="p-2">
-                            <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${getGenBadgeStyle(goal.generation)}`}>
+                            <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold border whitespace-nowrap ${getGenBadgeStyle(goal.generation)}`}>
                               {goal.genLabel || goal.generation || "Gen 1"}
                             </span>
                           </td>
@@ -411,7 +458,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
               <div className="text-[8px] text-slate-400 text-justify leading-tight">
                 <strong className="text-slate-500">{t.disclaimerTitle}</strong> {t.disclaimerText}
               </div>
-              
+
               <PageFooter data={data} t={t} pageNum={2} totalPages={2} />
             </div>
           </div>
