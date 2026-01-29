@@ -80,7 +80,7 @@ const PageHeader = ({ t }: { t: any }) => (
 const PageFooter = ({ data, t, pageNum, totalPages }: { data: ProposalData, t: any, pageNum: number, totalPages: number }) => {
   const smartTranslate = (text: string) => (t.lang === 'zh-HK' && HK_DATA_MAP[text]) ? HK_DATA_MAP[text] : text;
   return (
-    <div className="absolute bottom-[12mm] left-[15mm] right-[15mm] border-t border-slate-200 pt-2 flex justify-between text-[9px] text-slate-400">
+    <div className="absolute bottom-[10mm] left-[15mm] right-[15mm] border-t border-slate-200 pt-2 flex justify-between text-[9px] text-slate-400">
       <div>{smartTranslate(data.planName)} | v2.1</div>
       <div>Page {pageNum} / {totalPages}</div>
     </div>
@@ -132,7 +132,6 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
 
   const generatePDF = async () => {
     setIsPdfMode(true);
-    // Longer wait for layout and sub-component stability
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     try {
@@ -156,57 +155,18 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
 
     for (let i = 0; i < pages.length; i++) {
       const page = pages[i] as HTMLElement;
+
       // @ts-ignore
-      const canvas = await html2canvas(page, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
+      const imgData = await htmlToImage.toJpeg(page, {
+        quality: 1.0,
+        pixelRatio: 3,
+        backgroundColor: '#ffffff',
         width: 1123,
-        height: 794,
-        windowWidth: 1122,
-        letterRendering: true, // Attempt to stabilize character placement
-        onclone: (doc) => {
-          const s = doc.createElement('style');
-          s.innerHTML = `
-            * { 
-              transition: none !important; 
-              animation: none !important; 
-              font-kerning: none !important;
-              letter-spacing: 0 !important;
-            }
-            .pdf-page { width: 1123px !important; height: 794px !important; padding: 15mm !important; }
-            td, th { 
-              line-height: 1.4 !important; 
-              vertical-align: middle !important;
-              padding-top: 4px !important;
-              padding-bottom: 4px !important;
-            }
-            .line-clamp-1 { -webkit-line-clamp: unset !important; display: block !important; overflow: visible !important; }
-            /* Stabilize flex items that might shift */
-            .flex { display: flex !important; }
-            .items-center { align-items: center !important; }
-            /* Force badge text alignment */
-            span[class*="rounded"] { 
-              display: inline-block !important; 
-              line-height: 1 !important; 
-              vertical-align: baseline !important;
-            }
-            /* Stabilize dotted lines */
-            .border-dotted { border-style: solid !important; border-bottom-width: 1px !important; opacity: 0.3 !important; }
-            /* Explicit Font Family */
-            * { font-family: 'Noto Sans', 'Noto Sans TC', sans-serif !important; }
-            .serif-font { font-family: 'Noto Serif', 'Noto Sans TC', serif !important; }
-            span, div, td { white-space: nowrap; }
-            .whitespace-normal { white-space: normal !important; }
-          `;
-          doc.head.appendChild(s);
-        }
+        height: 794
       });
 
-      const imgData = canvas.toDataURL('image/jpeg', 0.98);
-
       if (i > 0) pdf.addPage();
-      pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210);
+      pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210, undefined, 'SLOW');
     }
 
     pdf.save(`${data.client.name}_Proposal.pdf`);
@@ -276,9 +236,9 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
                         <span className="text-slate-500">{t.totalPremium}</span>
                         <span className="font-bold text-slate-800">{formatMoney(data.premium.total)}</span>
                       </div>
-                      <div className="flex justify-between border-b border-slate-200 pb-1">
+                      <div className="flex justify-between border-b border-slate-200 pb-1 whitespace-nowrap">
                         <span className="text-slate-500">{t.paymentType}</span>
-                        <span className="font-bold text-slate-800">{data.premium.paymentType}</span>
+                        <span className="font-bold text-slate-800 ml-2">{data.premium.paymentType}</span>
                       </div>
 
                       {/* Legacy Features Display */}
@@ -323,7 +283,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
                           <th className="p-3 text-left">{t.policyYear}</th>
                           <th className="p-3">{t.surrenderValue}</th>
                           <th className="p-3">{t.deathBenefit}</th>
-                          <th className="p-3">{t.totalReturn}</th>
+                          <th className="p-3 pr-6">{t.totalReturn}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
@@ -333,7 +293,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
                             <td className="p-3 text-left text-slate-500">{t.startYear} {YEAR_VALS[index]} {t.year}</td>
                             <td className="p-3 font-mono">{formatMoney(data.scenarioA[key].surrender)}</td>
                             <td className="p-3 font-mono">{formatMoney(data.scenarioA[key].death)}</td>
-                            <td className="p-3 font-bold text-emerald-600">{getReturnRate(data.scenarioA[key].surrender)}</td>
+                            <td className="p-3 font-bold text-emerald-600 pr-6">{getReturnRate(data.scenarioA[key].surrender)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -344,7 +304,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
                   <div className="bg-white rounded-lg shadow-sm border border-amber-100 overflow-hidden">
                     <div className="bg-amber-50 px-4 py-2 border-b border-amber-200 flex justify-between items-center">
                       <h3 className="text-base font-bold text-amber-800">{t.scenarioB}</h3>
-                      <span className="text-sm text-amber-700 font-bold bg-white px-2 py-1 rounded border border-amber-200 shadow-sm">
+                      <span className="text-sm text-amber-700 font-bold bg-white px-2 py-1 rounded border border-amber-200 shadow-sm whitespace-nowrap">
                         {t.annualWithdrawal}: {formatMoney(data.scenarioB.annualWithdrawal)}
                       </span>
                     </div>
@@ -365,7 +325,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
                             <td className="p-3 text-left text-slate-500">{t.startYear} {YEAR_VALS[index]} {t.year}</td>
                             <td className="p-3 font-mono text-amber-700 font-bold">{formatMoney(data.scenarioB[key].cumulative)}</td>
                             <td className="p-3 font-mono">{formatMoney(data.scenarioB[key].remaining)}</td>
-                            <td className="p-3 font-bold text-emerald-600">
+                            <td className="p-3 font-bold text-emerald-600 pr-6">
                               {getReturnRate(data.scenarioB[key].cumulative + data.scenarioB[key].remaining)}
                             </td>
                           </tr>
@@ -403,7 +363,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
                       <th className="p-2 text-right">{t.annualAmt}</th>
                       <th className="p-2 text-right">{t.cumulativeWithdrawal}</th>
                       <th className="p-2 text-right">{t.remainingValue}</th>
-                      <th className="p-2 text-right">{t.totalReturn}</th>
+                      <th className="p-2 text-right pr-4">{t.totalReturn}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200 text-slate-700">
@@ -415,10 +375,10 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
                       return (
                         <tr key={idx} className="hover:bg-slate-50 transition-colors">
                           <td className="p-2 font-bold text-slate-900">
-                            {startAge === endAge ? startAge : `${startAge}-${endAge}`}
+                            {startAge === endAge ? startAge : `${startAge} -${endAge} `}
                           </td>
                           <td className="p-2 text-slate-500">
-                            {t.startYear} {goal.policyYearStart === goal.policyYearEnd ? goal.policyYearStart : `${goal.policyYearStart}-${goal.policyYearEnd}`} {t.year}
+                            {t.startYear} {goal.policyYearStart === goal.policyYearEnd ? goal.policyYearStart : `${goal.policyYearStart} -${goal.policyYearEnd} `} {t.year}
                           </td>
                           <td className="p-2">
                             <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold border whitespace-nowrap ${getGenBadgeStyle(goal.generation)}`}>
@@ -429,7 +389,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
                           <td className="p-2 text-right font-mono text-amber-700 font-bold">{formatMoney(goal.amount)}</td>
                           <td className="p-2 text-right font-mono text-slate-500">{formatMoney(goal.cumulative || 0)}</td>
                           <td className="p-2 text-right font-mono text-slate-500">{formatMoney(goal.remainingValue || 0)}</td>
-                          <td className="p-2 text-right font-bold text-emerald-600">{totalReturn}</td>
+                          <td className="p-2 text-right font-bold text-emerald-600 pr-4">{totalReturn}</td>
                         </tr>
                       );
                     })}
@@ -440,15 +400,15 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
               {/* Promo Info */}
               <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 mb-6">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white p-2 rounded border border-slate-100 shadow-sm flex items-center justify-between">
-                    <div className="text-[10px] text-slate-400 uppercase font-bold">{t.rebate}</div>
+                  <div className="bg-white p-2 rounded border border-slate-100 shadow-sm flex items-center justify-between whitespace-nowrap">
+                    <div className="text-[10px] text-slate-400 uppercase font-bold mr-2">{t.rebate}</div>
                     <div className="text-sm font-bold text-slate-800">{getRebateString()}</div>
                   </div>
-                  <div className="bg-white p-2 rounded border border-slate-100 shadow-sm flex items-center justify-between">
-                    <div className="text-[10px] text-slate-400 uppercase font-bold">{t.prepayInterest}</div>
-                    <div className="flex items-baseline gap-1">
+                  <div className="bg-white p-2 rounded border border-slate-100 shadow-sm flex items-center justify-between whitespace-nowrap overflow-visible">
+                    <div className="text-[10px] text-slate-400 uppercase font-bold mr-2">{t.prepayInterest}</div>
+                    <div className="flex items-baseline gap-1 flex-nowrap">
                       <span className="text-sm font-bold text-slate-800">{getPrepayString()}</span>
-                      <span className="text-[10px] text-red-500 font-medium">{getPrepayDeadlineString()}</span>
+                      <span className="text-[10px] text-red-500 font-medium whitespace-nowrap">{getPrepayDeadlineString()}</span>
                     </div>
                   </div>
                 </div>
