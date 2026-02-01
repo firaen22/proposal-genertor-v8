@@ -236,7 +236,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
                         <span className="text-slate-500">{t.totalPremium}</span>
                         <span className="font-bold text-slate-800">{formatMoney(data.premium.total)}</span>
                       </div>
-                      <div className="flex justify-between border-b border-slate-200 pb-1 whitespace-nowrap">
+                      <div className="flex justify-between pb-1 whitespace-nowrap">
                         <span className="text-slate-500">{t.paymentType}</span>
                         <span className="font-bold text-slate-800 ml-2">{data.premium.paymentType}</span>
                       </div>
@@ -340,7 +340,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
 
             {/* --- PAGE 2 --- */}
             <div
-              className={`relative bg-white ${isPdfMode ? '' : 'shadow-2xl'} overflow-hidden pdf-page`}
+              className={`relative bg-white ${isPdfMode ? '' : 'shadow-2xl'} overflow-hidden pdf-page flex flex-col`}
               style={{ width: '297mm', height: '210mm', padding: '15mm' }}
             >
               <PageHeader t={t} />
@@ -351,7 +351,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
               </div>
 
               {/* Goal Table */}
-              <div className="flex-1 bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-4">
+              <div className="flex-1 min-h-0 bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-4">
                 {/* Increased text-xs to text-sm */}
                 <table className="w-full text-sm">
                   <thead className="bg-slate-900 text-white uppercase tracking-wider">
@@ -398,7 +398,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
               </div>
 
               {/* Promo Info */}
-              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 mb-6">
+              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 mb-6 flex-shrink-0">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-white p-2 rounded border border-slate-100 shadow-sm flex items-center justify-between whitespace-nowrap">
                     <div className="text-[10px] text-slate-400 uppercase font-bold mr-2">{t.rebate}</div>
@@ -415,7 +415,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
               </div>
 
               {/* Disclaimer */}
-              <div className="text-[8px] text-slate-400 text-justify leading-tight">
+              <div className="text-[8px] text-slate-400 text-justify leading-normal flex-shrink-0">
                 <strong className="text-slate-500">{t.disclaimerTitle}</strong> {t.disclaimerText}
               </div>
 
