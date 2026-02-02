@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { generateNativePDF } from '../src/utils/nativePdfGenerator';
 import { ProposalData, Language } from '../types';
 import { TRANSLATIONS, HK_DATA_MAP } from '../constants';
 
@@ -285,6 +286,12 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
             className="bg-slate-700 hover:bg-slate-800 text-white text-xs px-3 py-2 rounded shadow font-bold flex items-center gap-2 transition-colors mr-2"
           >
             <span>📱</span> {t.exportIpad}
+          </button>
+          <button
+            onClick={() => generateNativePDF(data, t)}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded shadow font-bold flex items-center gap-2 transition-colors mr-2 text-nowrap"
+          >
+            <span>📄</span> Native PDF
           </button>
           <button onClick={generatePDF} className="bg-amber-600 hover:bg-amber-700 text-white text-sm px-4 py-2 rounded shadow font-bold flex items-center gap-2 transition-colors">
             {t.downloadPDF}
