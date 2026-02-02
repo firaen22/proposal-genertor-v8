@@ -198,7 +198,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
       </div>
 
       {/* Preview Viewport */}
-      <div className="flex-1 overflow-auto flex justify-center items-start py-8">
+      <div className="flex-1 overflow-auto flex justify-center items-start py-8 overflow-x-auto">
         <div style={{
           transform: isPdfMode ? 'none' : `scale(${scale})`,
           transformOrigin: 'top center',
@@ -207,7 +207,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
 
           <div
             ref={contentRef}
-            className={`flex flex-col items-center print-container ${isPdfMode ? 'gap-0' : 'gap-8'}`}
+            className={`flex flex-col items-center print-container ${isPdfMode ? 'gap-0' : 'gap-8'} min-w-[297mm]`}
             style={{ width: '297mm' }}
           >
             {/* --- PAGE 1 --- */}
