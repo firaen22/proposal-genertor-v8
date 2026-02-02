@@ -175,25 +175,28 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
 
   const generateiPadPDF = async () => {
     // iPad-specific robust generation using cloned nodes
-    // This bypasses the viewport scaling issues by rendering in a fixed-width off-screen container
+    // Version 2: Optimized for iOS Safari memory limits and rendering quirks
 
     if (!contentRef.current) return;
 
     const exportBtn = document.getElementById('btn-export-ipad');
-    if (exportBtn) exportBtn.innerText = 'Generating...';
+    const originalText = exportBtn ? exportBtn.innerText : '';
+    if (exportBtn) exportBtn.innerText = 'Preparing...';
 
-    // 1. Create a hidden container with fixed A4 dimensions
+    // 1. Create a hidden container ON TOP of the viewport
+    // WebKit often ignores off-screen elements (-10000px) to save memory.
+    // We use opacity 0 and z-index to hide it visually but force rendering.
     const container = document.createElement('div');
     container.style.position = 'fixed';
-    container.style.left = '-10000px';
     container.style.top = '0';
+    container.style.left = '0';
     container.style.width = '297mm'; // Force A4 width
-    container.style.height = 'auto';
-    container.style.zIndex = '-9999';
-    container.style.backgroundColor = '#f1f5f9'; // bg-slate-200 equivalent
+    container.style.zIndex = '-9999'; // Behind everything else, just in case
+    container.style.opacity = '0';    // Invisible
+    container.style.pointerEvents = 'none'; // Non-interactive
+    container.style.backgroundColor = '#ffffff';
 
     // 2. Clone the content
-    // We need to clone the *inner* content that has the pages
     const contentClone = contentRef.current.cloneNode(true) as HTMLElement;
 
     // Ensure the clone has the print-container class and correct width
@@ -201,14 +204,12 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
     contentClone.style.width = '297mm';
     contentClone.style.transform = 'none'; // Ensure no scale
 
-    // Remove any potential interactive elements or shadows if needed for clean print
-    // For now, we trust the 'pdf-page' structure
-
     container.appendChild(contentClone);
     document.body.appendChild(container);
 
-    // Wait a brief moment for layout to settle in the new container
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Wait for DOM update and font/image settling
+    if (exportBtn) exportBtn.innerText = 'Rendering...';
+    await new Promise(resolve => setTimeout(resolve, 800));
 
     try {
       const pages = container.querySelectorAll('.pdf-page');
@@ -227,28 +228,32 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
         // Ensure page background is white
         page.style.backgroundColor = '#ffffff';
 
+        if (exportBtn) exportBtn.innerText = `Page ${i + 1}/${pages.length}...`;
+
         // @ts-ignore
         const imgData = await htmlToImage.toJpeg(page, {
-          quality: 1.0,
-          pixelRatio: 3,
+          quality: 0.9,       // Slightly reduced quality
+          pixelRatio: 2.0,    // REDUCED from 3.0 to 2.0 to avoid iOS Canvas memory limits
           backgroundColor: '#ffffff',
-          width: 1123, // 297mm @ 96 DPI is approx 1123px
-          height: 794
+          width: 1123,        // Logical width (297mm)
+          height: 794,
+          skipAutoScale: true // Prevent internal scaling logic from messing up
         });
 
         if (i > 0) pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210, undefined, 'SLOW');
+        pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210, undefined, 'FAST'); // Use FAST compression
       }
 
+      if (exportBtn) exportBtn.innerText = 'Saving...';
       pdf.save(`${data.client.name}_Proposal_iPad.pdf`);
 
     } catch (e) {
       console.error("iPad Export failed", e);
-      alert("Export failed. Please try again.");
+      alert("Export failed. This device might be running out of memory. Try closing other tabs.");
     } finally {
       // Clean up
       document.body.removeChild(container);
-      if (exportBtn) exportBtn.innerText = t.exportIpad;
+      if (exportBtn) exportBtn.innerText = originalText;
     }
   };
 
