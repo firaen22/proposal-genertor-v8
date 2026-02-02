@@ -19,14 +19,15 @@ export default async function handler(req: Request) {
         }
 
         // Configure font loading
-        await chromium.font('https://raw.githubusercontent.com/google/fonts/main/ofl/notosanstc/NotoSansTC-Bold.ttf');
+        // Removed chromium.font() as it is not available in this version.
+        // We rely on the <link> tag in the HTML for fonts.
 
         // Launch Browser
         const browser = await puppeteer.launch({
             args: chromium.args,
-            defaultViewport: chromium.defaultViewport,
+            defaultViewport: { width: 1920, height: 1080 },
             executablePath: await chromium.executablePath(),
-            headless: chromium.headless,
+            headless: true,
         });
 
         const page = await browser.newPage();
@@ -53,7 +54,8 @@ export default async function handler(req: Request) {
         await browser.close();
 
         // Return PDF
-        return new Response(pdf, {
+        // Cast pdf to any or Buffer to satisfy Response type if needed
+        return new Response(pdf as any, {
             headers: {
                 'Content-Type': 'application/pdf',
                 'Content-Disposition': 'attachment; filename="proposal.pdf"',
