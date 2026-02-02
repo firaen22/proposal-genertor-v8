@@ -112,7 +112,11 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
   const getRebateString = () => {
     const parts = [];
     if (data.promo.lumpSum.enabled) parts.push(`${t.rebateLumpSum} ${data.promo.lumpSum.percent}%`);
-    if (data.promo.fiveYear.enabled) parts.push(`${t.rebate5Year} ${data.promo.fiveYear.percent}%`);
+
+    // Dynamic label for second option
+    const secondLabel = data.premium.paymentType === t.rebateLumpSum ? t.rebate5Year : data.premium.paymentType;
+
+    if (data.promo.fiveYear.enabled) parts.push(`${secondLabel} ${data.promo.fiveYear.percent}%`);
     return parts.length > 0 ? parts.join(", ") : "N/A";
   };
   const getPrepayString = () => !data.promo.prepay.enabled ? "N/A" : `${data.promo.prepay.rate}%`;

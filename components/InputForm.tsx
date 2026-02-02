@@ -205,7 +205,7 @@ export const InputForm: React.FC<InputFormProps> = ({ data, onChange, onSubmit, 
   const recalculateScenarioCCumulative = (goals: GoalEvent[]) => {
     // Robustness: Sort goals by start year to ensure cumulative calculation is chronological
     const sortedGoals = [...goals].sort((a, b) => a.policyYearStart - b.policyYearStart);
-    
+
     let runningTotal = 0;
     return sortedGoals.map(goal => {
       const duration = Math.max(1, goal.policyYearEnd - goal.policyYearStart + 1);
@@ -227,7 +227,7 @@ export const InputForm: React.FC<InputFormProps> = ({ data, onChange, onSubmit, 
     newData.scenarioC.goals = ['amount', 'policyYearStart', 'policyYearEnd'].includes(field as string)
       ? recalculateScenarioCCumulative(newGoals)
       : newGoals;
-    
+
     onChange(newData);
   };
 
@@ -267,7 +267,7 @@ export const InputForm: React.FC<InputFormProps> = ({ data, onChange, onSubmit, 
       </div>
 
       <div className="space-y-8">
-        
+
         {/* Section 1: Basic Info */}
         <section>
           <h3 className="text-sm font-bold text-amber-600 uppercase tracking-wider mb-4 border-b border-slate-200 pb-2 serif-font">Client & Plan</h3>
@@ -299,27 +299,27 @@ export const InputForm: React.FC<InputFormProps> = ({ data, onChange, onSubmit, 
           </div>
 
           <div className="mt-4 pt-4 border-t border-slate-200">
-             <label className="block text-sm font-bold text-amber-600 mb-2 uppercase tracking-wider serif-font">{t.policyLegacyFeatures}</label>
-             <div className="flex gap-6">
-               <label className="flex items-center space-x-2 text-sm text-slate-700 cursor-pointer">
-                 <input 
-                   type="checkbox" 
-                   checked={data.legacy.secondOwner} 
-                   onChange={(e) => handleChange('legacy', 'secondOwner', e.target.checked)}
-                   className="rounded text-amber-600 focus:ring-amber-500"
-                 />
-                 <span>{t.secondOwner}</span>
-               </label>
-               <label className="flex items-center space-x-2 text-sm text-slate-700 cursor-pointer">
-                 <input 
-                   type="checkbox" 
-                   checked={data.legacy.successorInsured} 
-                   onChange={(e) => handleChange('legacy', 'successorInsured', e.target.checked)}
-                   className="rounded text-amber-600 focus:ring-amber-500"
-                 />
-                 <span>{t.successorInsured}</span>
-               </label>
-             </div>
+            <label className="block text-sm font-bold text-amber-600 mb-2 uppercase tracking-wider serif-font">{t.policyLegacyFeatures}</label>
+            <div className="flex gap-6">
+              <label className="flex items-center space-x-2 text-sm text-slate-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={data.legacy.secondOwner}
+                  onChange={(e) => handleChange('legacy', 'secondOwner', e.target.checked)}
+                  className="rounded text-amber-600 focus:ring-amber-500"
+                />
+                <span>{t.secondOwner}</span>
+              </label>
+              <label className="flex items-center space-x-2 text-sm text-slate-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={data.legacy.successorInsured}
+                  onChange={(e) => handleChange('legacy', 'successorInsured', e.target.checked)}
+                  className="rounded text-amber-600 focus:ring-amber-500"
+                />
+                <span>{t.successorInsured}</span>
+              </label>
+            </div>
           </div>
         </section>
 
@@ -430,12 +430,12 @@ export const InputForm: React.FC<InputFormProps> = ({ data, onChange, onSubmit, 
               </div>
             </div>
 
-            {/* 5 Year */}
+            {/* 5 Year (Dynamic) */}
             <div className="bg-slate-50 p-4 rounded-md border border-slate-200">
               <div className="flex items-center justify-between mb-2">
                 <label className="flex items-center text-sm font-bold text-slate-700">
                   <input type="checkbox" checked={data.promo.fiveYear.enabled} onChange={(e) => handleChange('promo', 'fiveYear', e.target.checked, 'enabled')} className="h-4 w-4 text-amber-600 mr-2" />
-                  Rebate: {t.rebateLumpSum} (5-Year Payment)
+                  Rebate: {data.premium.paymentType === t.rebateLumpSum ? t.rebate5Year : data.premium.paymentType}
                 </label>
                 {data.promo.fiveYear.enabled && (
                   <div className="flex items-center w-32">
