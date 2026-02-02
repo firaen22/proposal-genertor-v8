@@ -8,3 +8,17 @@
         text-size-adjust: none;
     }
 }
+
+/* Strict PDF Page Layout Locks for iPad/WebKit */
+.pdf-page {
+    /* Prevent table compression */
+    table-layout: fixed !important;
+    word-break: break-all !important;
+}
+
+.pdf-page * {
+    /* Ensure consistent font rendering on iPad matches desktop */
+    font-variant-ligatures: none !important;
+    -webkit-font-feature-settings: "liga" 0 !important;
+    -webkit-font-smoothing: antialiased;
+}
