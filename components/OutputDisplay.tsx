@@ -174,86 +174,52 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
   };
 
   const generateiPadPDF = async () => {
-    // iPad-specific robust generation using cloned nodes
-    // Version 2: Optimized for iOS Safari memory limits and rendering quirks
-
     if (!contentRef.current) return;
 
-    const exportBtn = document.getElementById('btn-export-ipad');
-    const originalText = exportBtn ? exportBtn.innerText : '';
-    if (exportBtn) exportBtn.innerText = 'Preparing...';
-
-    // 1. Create a hidden container ON TOP of the viewport
-    // WebKit often ignores off-screen elements (-10000px) to save memory.
-    // We use opacity 0 and z-index to hide it visually but force rendering.
+    // 1. 创建一个临时的、置顶但透明的容器
     const container = document.createElement('div');
     container.style.position = 'fixed';
     container.style.top = '0';
     container.style.left = '0';
-    container.style.width = '297mm'; // Force A4 width
-    container.style.zIndex = '-9999'; // Behind everything else, just in case
-    container.style.opacity = '0';    // Invisible
-    container.style.pointerEvents = 'none'; // Non-interactive
-    container.style.backgroundColor = '#ffffff';
+    container.style.width = '297mm'; // 锁定 A4 宽度
+    container.style.zIndex = '-9999';
+    container.style.opacity = '0';
+    container.style.pointerEvents = 'none';
 
-    // 2. Clone the content
+    // 2. 深度克隆内容，并移除所有缩放样式
     const contentClone = contentRef.current.cloneNode(true) as HTMLElement;
-
-    // Ensure the clone has the print-container class and correct width
-    contentClone.className = 'flex flex-col items-center print-container gap-0 min-w-[297mm]';
+    contentClone.style.transform = 'none'; // 关键：移除 Preview 时的缩放
     contentClone.style.width = '297mm';
-    contentClone.style.transform = 'none'; // Ensure no scale
 
     container.appendChild(contentClone);
     document.body.appendChild(container);
 
-    // Wait for DOM update and font/image settling
-    if (exportBtn) exportBtn.innerText = 'Rendering...';
+    // 给 iPad 一点时间渲染 DOM
     await new Promise(resolve => setTimeout(resolve, 800));
 
     try {
       const pages = container.querySelectorAll('.pdf-page');
-      if (!pages || pages.length === 0) throw new Error("No pages found");
-
       // @ts-ignore
-      const pdf = new jspdf.jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: 'a4'
-      });
+      const pdf = new jspdf.jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
       for (let i = 0; i < pages.length; i++) {
         const page = pages[i] as HTMLElement;
-
-        // Ensure page background is white
-        page.style.backgroundColor = '#ffffff';
-
-        if (exportBtn) exportBtn.innerText = `Page ${i + 1}/${pages.length}...`;
-
         // @ts-ignore
         const imgData = await htmlToImage.toJpeg(page, {
-          quality: 0.9,       // Slightly reduced quality
-          pixelRatio: 2.0,    // REDUCED from 3.0 to 2.0 to avoid iOS Canvas memory limits
-          backgroundColor: '#ffffff',
-          width: 1123,        // Logical width (297mm)
-          height: 794,
-          skipAutoScale: true // Prevent internal scaling logic from messing up
+          quality: 0.9,
+          pixelRatio: 2.0, // iPad 建议使用 2.0，3.0 极易导致走位或黑屏
+          backgroundColor: '#ffffff'
         });
 
         if (i > 0) pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210, undefined, 'FAST'); // Use FAST compression
+        pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210, undefined, 'FAST');
       }
 
-      if (exportBtn) exportBtn.innerText = 'Saving...';
-      pdf.save(`${data.client.name}_Proposal_iPad.pdf`);
-
+      pdf.save(`${data.client.name}_Proposal.pdf`);
     } catch (e) {
-      console.error("iPad Export failed", e);
-      alert("Export failed. This device might be running out of memory. Try closing other tabs.");
+      alert("导出失败，请尝试重新刷新页面。");
     } finally {
-      // Clean up
       document.body.removeChild(container);
-      if (exportBtn) exportBtn.innerText = originalText;
     }
   };
 
