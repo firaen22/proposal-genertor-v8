@@ -180,26 +180,44 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
   const generateiPadPDF = async () => {
     if (!contentRef.current) return;
 
-    // 1. 创建一个临时的、置顶但透明的容器
+    // 1. Create a temporary, fixed-position container for layout locking
     const container = document.createElement('div');
     container.style.position = 'fixed';
     container.style.top = '0';
     container.style.left = '0';
-    container.style.width = '297mm'; // 锁定 A4 宽度
+    container.style.width = '297mm'; // Lock A4 Width
+    container.style.height = '210mm'; // Lock A4 Height
     container.style.zIndex = '-9999';
-    container.style.opacity = '0';
+    container.style.opacity = '1'; // Keeping opacity 1 sometimes helps rendering, just hide via z-index
     container.style.pointerEvents = 'none';
+    container.style.backgroundColor = '#ffffff';
 
-    // 2. 深度克隆内容，并移除所有缩放样式
+    // 2. Clone content
     const contentClone = contentRef.current.cloneNode(true) as HTMLElement;
-    contentClone.style.transform = 'none'; // 关键：移除 Preview 时的缩放
+    contentClone.style.transform = 'none'; // Remove any zoom/scale
     contentClone.style.width = '297mm';
+    contentClone.style.height = 'auto'; // Allow height to flow natural, page breaks handle split
+    // Force font smoothing to match screen render & prevent shift
+    contentClone.style.setProperty('-webkit-font-smoothing', 'antialiased');
+
+    // Explicitly set box-sizing to prevent padding shift
+    const allElements = contentClone.querySelectorAll('*');
+    allElements.forEach((el) => {
+      (el as HTMLElement).style.boxSizing = 'border-box';
+    });
 
     container.appendChild(contentClone);
     document.body.appendChild(container);
 
-    // 给 iPad 一点时间渲染 DOM
-    await new Promise(resolve => setTimeout(resolve, 800));
+    // 3. WAIT for Fonts to be fully ready
+    try {
+      await document.fonts.ready;
+    } catch (e) {
+      console.warn("Font loading wait failed", e);
+    }
+
+    // Generous delay for layout stabilization on iOS
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     try {
       const pages = container.querySelectorAll('.pdf-page');
@@ -208,11 +226,22 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
 
       for (let i = 0; i < pages.length; i++) {
         const page = pages[i] as HTMLElement;
+
+        // Garbage collection pause between pages
+        if (i > 0) await new Promise(resolve => setTimeout(resolve, 500));
+
         // @ts-ignore
         const imgData = await htmlToImage.toJpeg(page, {
-          quality: 0.9,
-          pixelRatio: 2.0, // iPad 建议使用 2.0，3.0 极易导致走位或黑屏
-          backgroundColor: '#ffffff'
+          quality: 0.95, // Slightly higher quality
+          pixelRatio: 1.5, // Reduced from 2.0 to 1.5 for memory safety & crash prevention
+          backgroundColor: '#ffffff',
+          width: 1123, // Explicit px width for A4 @ 96dpi (approx)
+          height: 794,
+          style: {
+            // Explicitly re-assert font smoothing during capture
+            '-webkit-font-smoothing': 'antialiased',
+            'font-smooth': 'always',
+          }
         });
 
         if (i > 0) pdf.addPage();
@@ -221,9 +250,12 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
 
       pdf.save(`${data.client.name}_Proposal.pdf`);
     } catch (e) {
-      alert("导出失败，请尝试重新刷新页面。");
+      console.error("iPad Export Failed:", e);
+      alert("iPad Export failed (Memory limit or timeout). Please refresh and try again.");
     } finally {
-      document.body.removeChild(container);
+      if (document.body.contains(container)) {
+        document.body.removeChild(container);
+      }
     }
   };
 
