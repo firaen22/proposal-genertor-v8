@@ -178,6 +178,84 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
     setIsPdfMode(false);
   };
 
+  const generateServerPDF = async () => {
+    if (!contentRef.current) return;
+    setIsPdfMode(true);
+    await new Promise(resolve => setTimeout(resolve, 500)); // Allow render to update
+
+    try {
+      // 1. Get HTML
+      // We clone to ensure we aren't messing with the live view
+      // But for simple HTML extraction, `outerHTML` is fine if the view is already correct.
+      // However, we need to ensure the width is locked to A4 (297mm).
+
+      const contentClone = contentRef.current.cloneNode(true) as HTMLElement;
+
+      // Force A4 width on the clone to ensure the server renders it at the right scale
+      contentClone.style.width = '297mm';
+      contentClone.style.margin = '0';
+      contentClone.style.transform = 'none';
+
+      // 2. Get Styles
+      // Collect all style tags and link tags
+      let styles = '';
+      document.querySelectorAll('style, link[rel="stylesheet"]').forEach(node => {
+        styles += node.outerHTML;
+      });
+
+      // 3. Construct Full HTML
+      // Add a wrapper to center/reset
+      const completeHtml = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=Noto+Serif:wght@400;700&display=swap" rel="stylesheet">
+            ${styles}
+            <style>
+              @page { margin: 0; size: A4 landscape; }
+              body { margin: 0; background: white; -webkit-print-color-adjust: exact; }
+              .pdf-page { break-after: always; page-break-after: always; }
+            </style>
+          </head>
+          <body>
+            ${contentClone.outerHTML}
+          </body>
+        </html>
+      `;
+
+      // 4. Send to API
+      const response = await fetch('/api/generate-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ html: completeHtml }),
+      });
+
+      if (!response.ok) {
+        const err = await response.text();
+        throw new Error(err);
+      }
+
+      // 5. Download Blob
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${data.client.name}_Proposal_Server.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+
+    } catch (e) {
+      console.error("Server PDF Error:", e);
+      alert("Server PDF Generation Failed. Please ensure you are running on Vercel or a supported environment.\n" + (e as Error).message);
+    } finally {
+      setIsPdfMode(false);
+    }
+  };
+
   const generateiPadPDF = async () => {
     if (!contentRef.current) return;
 
@@ -286,6 +364,12 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
             className="bg-slate-700 hover:bg-slate-800 text-white text-xs px-3 py-2 rounded shadow font-bold flex items-center gap-2 transition-colors mr-2"
           >
             <span>📱</span> {t.exportIpad}
+          </button>
+          <button
+            onClick={generateServerPDF}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-2 rounded shadow font-bold flex items-center gap-2 transition-colors mr-2 text-nowrap"
+          >
+            <span>☁️</span> Ultimate PDF
           </button>
           <button
             onClick={() => generateNativePDF(data, t)}

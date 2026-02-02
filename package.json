@@ -11,10 +11,12 @@
   },
   "dependencies": {
     "@google/genai": "^1.37.0",
+    "@sparticuz/chromium": "^143.0.4",
     "@vercel/og": "^0.8.6",
     "clsx": "^2.1.1",
     "jspdf": "^4.1.0",
     "jspdf-autotable": "^5.0.7",
+    "puppeteer-core": "^24.36.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwind-merge": "^2.5.4"
