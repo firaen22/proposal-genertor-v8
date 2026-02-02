@@ -173,6 +173,85 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
     setIsPdfMode(false);
   };
 
+  const generateiPadPDF = async () => {
+    // iPad-specific robust generation using cloned nodes
+    // This bypasses the viewport scaling issues by rendering in a fixed-width off-screen container
+
+    if (!contentRef.current) return;
+
+    const exportBtn = document.getElementById('btn-export-ipad');
+    if (exportBtn) exportBtn.innerText = 'Generating...';
+
+    // 1. Create a hidden container with fixed A4 dimensions
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.left = '-10000px';
+    container.style.top = '0';
+    container.style.width = '297mm'; // Force A4 width
+    container.style.height = 'auto';
+    container.style.zIndex = '-9999';
+    container.style.backgroundColor = '#f1f5f9'; // bg-slate-200 equivalent
+
+    // 2. Clone the content
+    // We need to clone the *inner* content that has the pages
+    const contentClone = contentRef.current.cloneNode(true) as HTMLElement;
+
+    // Ensure the clone has the print-container class and correct width
+    contentClone.className = 'flex flex-col items-center print-container gap-0 min-w-[297mm]';
+    contentClone.style.width = '297mm';
+    contentClone.style.transform = 'none'; // Ensure no scale
+
+    // Remove any potential interactive elements or shadows if needed for clean print
+    // For now, we trust the 'pdf-page' structure
+
+    container.appendChild(contentClone);
+    document.body.appendChild(container);
+
+    // Wait a brief moment for layout to settle in the new container
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    try {
+      const pages = container.querySelectorAll('.pdf-page');
+      if (!pages || pages.length === 0) throw new Error("No pages found");
+
+      // @ts-ignore
+      const pdf = new jspdf.jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      for (let i = 0; i < pages.length; i++) {
+        const page = pages[i] as HTMLElement;
+
+        // Ensure page background is white
+        page.style.backgroundColor = '#ffffff';
+
+        // @ts-ignore
+        const imgData = await htmlToImage.toJpeg(page, {
+          quality: 1.0,
+          pixelRatio: 3,
+          backgroundColor: '#ffffff',
+          width: 1123, // 297mm @ 96 DPI is approx 1123px
+          height: 794
+        });
+
+        if (i > 0) pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210, undefined, 'SLOW');
+      }
+
+      pdf.save(`${data.client.name}_Proposal_iPad.pdf`);
+
+    } catch (e) {
+      console.error("iPad Export failed", e);
+      alert("Export failed. Please try again.");
+    } finally {
+      // Clean up
+      document.body.removeChild(container);
+      if (exportBtn) exportBtn.innerText = t.exportIpad;
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-slate-200">
       {/* Toolbar */}
@@ -191,6 +270,15 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
             <span className="text-xs text-slate-400">Zoom:</span>
             <input type="range" min="0.5" max="1.2" step="0.1" value={scale} onChange={(e) => setScale(parseFloat(e.target.value))} className="w-24 cursor-pointer accent-amber-600" />
           </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            id="btn-export-ipad"
+            onClick={generateiPadPDF}
+            className="bg-slate-700 hover:bg-slate-800 text-white text-xs px-3 py-2 rounded shadow font-bold flex items-center gap-2 transition-colors mr-2"
+          >
+            <span>📱</span> {t.exportIpad}
+          </button>
           <button onClick={generatePDF} className="bg-amber-600 hover:bg-amber-700 text-white text-sm px-4 py-2 rounded shadow font-bold flex items-center gap-2 transition-colors">
             {t.downloadPDF}
           </button>
@@ -424,6 +512,6 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 };

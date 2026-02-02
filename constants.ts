@@ -106,6 +106,7 @@ export const TRANSLATIONS = {
     policyLegacyFeatures: "保单传承功能",
     secondOwner: "第二持有人",
     successorInsured: "后备受保人",
+    exportIpad: "iPad 导出 (Beta)",
   },
   'zh-HK': {
     title: "私人財富管理建議書",
@@ -163,6 +164,7 @@ export const TRANSLATIONS = {
     policyLegacyFeatures: "保單傳承功能",
     secondOwner: "第二持有人",
     successorInsured: "後備受保人",
+    exportIpad: "iPad 導出 (Beta)",
   }
 };
 
