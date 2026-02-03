@@ -57,7 +57,7 @@ const LegacyRoadmap = ({ t }: { t: any }) => (
         { id: 3, label: t.gen3, desc: t.gen3Desc, color: "bg-emerald-600", text: "text-emerald-700" }
       ].map(node => (
         <div key={node.id} className="flex flex-col items-center z-10 bg-slate-50 px-4 py-1 rounded-lg">
-          <div className={`w-8 h-8 rounded-full ${node.color} text-white flex items-center justify-center font-bold text-sm shadow-md border-2 border-white`}>{node.id}</div>
+          <div className={`w-8 h-8 rounded-full ${node.color} text-white flex items-center justify-center font-bold text-sm border-2 border-white`}>{node.id}</div>
           <div className={`text-[10px] font-bold ${node.text} mt-1`}>{node.label}</div>
           <div className="text-[9px] text-slate-500">{node.desc}</div>
         </div>
@@ -460,8 +460,8 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
                           <td className="p-2 text-slate-500">
                             {t.startYear} {goal.policyYearStart === goal.policyYearEnd ? goal.policyYearStart : `${goal.policyYearStart} -${goal.policyYearEnd} `} {t.year}
                           </td>
-                          <td className="p-2">
-                            <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold border whitespace-nowrap ${getGenBadgeStyle(goal.generation)}`}>
+                          <td className="p-2 align-middle">
+                            <span className={`inline-block px-2 py-1 rounded text-[10px] font-bold border whitespace-nowrap ${getGenBadgeStyle(goal.generation)}`}>
                               {goal.genLabel || goal.generation || "Gen 1"}
                             </span>
                           </td>
