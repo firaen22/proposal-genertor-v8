@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { generateNativePDF } from '../src/utils/nativePdfGenerator';
 import { ProposalData, Language } from '../types';
 import { TRANSLATIONS, HK_DATA_MAP } from '../constants';
+import { usePDFReport } from '../src/hooks/usePDFReport';
 
 // --- Constants & Helper Types ---
 const YEAR_KEYS = ['year10', 'year20', 'year30', 'year40'] as const;
@@ -102,6 +103,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
   const [isPdfMode, setIsPdfMode] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const t = TRANSLATIONS[lang];
+  const { generatePDF: generatePDFReport, isGenerating } = usePDFReport();
 
   // Helpers
   const smartTranslate = (text: string) => (lang === 'zh-HK' && HK_DATA_MAP[text]) ? HK_DATA_MAP[text] : text;
@@ -136,45 +138,15 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
   };
 
   const generatePDF = async () => {
+    if (!contentRef.current) return;
     setIsPdfMode(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Give React a moment to update state (remove scaling etc if needed)
+    await new Promise(resolve => setTimeout(resolve, 100));
 
-    try {
-      await document.fonts.ready;
-    } catch (e) {
-      console.warn("Font loading check failed", e);
-    }
-
-    const pages = contentRef.current?.querySelectorAll('.pdf-page');
-    if (!pages || pages.length === 0) {
-      setIsPdfMode(false);
-      return;
-    }
-
-    // @ts-ignore
-    const pdf = new jspdf.jsPDF({
-      orientation: 'landscape',
-      unit: 'mm',
-      format: 'a4'
+    await generatePDFReport(contentRef.current, {
+      filename: `${data.client.name}_Proposal.pdf`
     });
 
-    for (let i = 0; i < pages.length; i++) {
-      const page = pages[i] as HTMLElement;
-
-      // @ts-ignore
-      const imgData = await htmlToImage.toJpeg(page, {
-        quality: 1.0,
-        pixelRatio: 3,
-        backgroundColor: '#ffffff',
-        width: 1123,
-        height: 794
-      });
-
-      if (i > 0) pdf.addPage();
-      pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210, undefined, 'SLOW');
-    }
-
-    pdf.save(`${data.client.name}_Proposal.pdf`);
     setIsPdfMode(false);
   };
 
@@ -256,87 +228,9 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
     }
   };
 
-  const generateiPadPDF = async () => {
-    if (!contentRef.current) return;
-
-    // 1. Create a temporary, fixed-position container for layout locking
-    const container = document.createElement('div');
-    container.style.position = 'fixed';
-    container.style.top = '0';
-    container.style.left = '0';
-    container.style.width = '297mm'; // Lock A4 Width
-    container.style.height = '210mm'; // Lock A4 Height
-    container.style.zIndex = '-9999';
-    container.style.opacity = '1'; // Keeping opacity 1 sometimes helps rendering, just hide via z-index
-    container.style.pointerEvents = 'none';
-    container.style.backgroundColor = '#ffffff';
-
-    // 2. Clone content
-    const contentClone = contentRef.current.cloneNode(true) as HTMLElement;
-    contentClone.style.transform = 'none'; // Remove any zoom/scale
-    contentClone.style.width = '297mm';
-    contentClone.style.height = 'auto'; // Allow height to flow natural, page breaks handle split
-    // Force font smoothing to match screen render & prevent shift
-    contentClone.style.setProperty('-webkit-font-smoothing', 'antialiased');
-
-    // Explicitly set box-sizing to prevent padding shift
-    const allElements = contentClone.querySelectorAll('*');
-    allElements.forEach((el) => {
-      (el as HTMLElement).style.boxSizing = 'border-box';
-    });
-
-    container.appendChild(contentClone);
-    document.body.appendChild(container);
-
-    // 3. WAIT for Fonts to be fully ready
-    try {
-      await document.fonts.ready;
-    } catch (e) {
-      console.warn("Font loading wait failed", e);
-    }
-
-    // Generous delay for layout stabilization on iOS
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    try {
-      const pages = container.querySelectorAll('.pdf-page');
-      // @ts-ignore
-      const pdf = new jspdf.jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-
-      for (let i = 0; i < pages.length; i++) {
-        const page = pages[i] as HTMLElement;
-
-        // Garbage collection pause between pages
-        if (i > 0) await new Promise(resolve => setTimeout(resolve, 500));
-
-        // @ts-ignore
-        const imgData = await htmlToImage.toJpeg(page, {
-          quality: 0.95, // Slightly higher quality
-          pixelRatio: 1.5, // Reduced from 2.0 to 1.5 for memory safety & crash prevention
-          backgroundColor: '#ffffff',
-          width: 1123, // Explicit px width for A4 @ 96dpi (approx)
-          height: 794,
-          style: {
-            // Explicitly re-assert font smoothing during capture
-            '-webkit-font-smoothing': 'antialiased',
-            'font-smooth': 'always',
-          }
-        });
-
-        if (i > 0) pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210, undefined, 'FAST');
-      }
-
-      pdf.save(`${data.client.name}_Proposal.pdf`);
-    } catch (e) {
-      console.error("iPad Export Failed:", e);
-      alert("iPad Export failed (Memory limit or timeout). Please refresh and try again.");
-    } finally {
-      if (document.body.contains(container)) {
-        document.body.removeChild(container);
-      }
-    }
-  };
+  // Reusing the same function for iPad extraction for now, as html2canvas should handle it better
+  // If we need specific iPad logic, we can add options to the hook.
+  const generateiPadPDF = generatePDF;
 
   return (
     <div className="flex flex-col h-full bg-slate-200">
