@@ -57,7 +57,7 @@ const LegacyRoadmap = ({ t }: { t: any }) => (
         { id: 3, label: t.gen3, desc: t.gen3Desc, color: "bg-emerald-600", text: "text-emerald-700" }
       ].map(node => (
         <div key={node.id} className="flex flex-col items-center z-10 bg-slate-50 px-4 py-1 rounded-lg">
-          <div className={`w-8 h-8 rounded-full ${node.color} text-white flex items-center justify-center font-bold text-sm border-2 border-white`}>{node.id}</div>
+          <div className={`w-8 h-8 rounded-full ${node.color} text-white flex items-center justify-center font-bold text-sm border-2 border-white`} style={{ boxShadow: 'none' }}>{node.id}</div>
           <div className={`text-[10px] font-bold ${node.text} mt-1`}>{node.label}</div>
           <div className="text-[9px] text-slate-500">{node.desc}</div>
         </div>
@@ -252,25 +252,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            id="btn-export-ipad"
-            onClick={generateiPadPDF}
-            className="bg-slate-700 hover:bg-slate-800 text-white text-xs px-3 py-2 rounded shadow font-bold flex items-center gap-2 transition-colors mr-2"
-          >
-            <span>📱</span> {t.exportIpad}
-          </button>
-          <button
-            onClick={generateServerPDF}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-2 rounded shadow font-bold flex items-center gap-2 transition-colors mr-2 text-nowrap"
-          >
-            <span>☁️</span> Ultimate PDF
-          </button>
-          <button
-            onClick={() => generateNativePDF(data, t)}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded shadow font-bold flex items-center gap-2 transition-colors mr-2 text-nowrap"
-          >
-            <span>📄</span> Native PDF
-          </button>
+
           <button onClick={generatePDF} className="bg-amber-600 hover:bg-amber-700 text-white text-sm px-4 py-2 rounded shadow font-bold flex items-center gap-2 transition-colors">
             {t.downloadPDF}
           </button>
@@ -461,9 +443,11 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
                             {t.startYear} {goal.policyYearStart === goal.policyYearEnd ? goal.policyYearStart : `${goal.policyYearStart} -${goal.policyYearEnd} `} {t.year}
                           </td>
                           <td className="p-2 align-middle">
-                            <span className={`inline-block px-2 py-1 rounded text-[10px] font-bold border whitespace-nowrap ${getGenBadgeStyle(goal.generation)}`}>
-                              {goal.genLabel || goal.generation || "Gen 1"}
-                            </span>
+                            <div className="flex items-center">
+                              <span className={`inline-block px-2 py-1 rounded text-[10px] font-bold border whitespace-nowrap ${getGenBadgeStyle(goal.generation)}`}>
+                                {goal.genLabel || goal.generation || "Gen 1"}
+                              </span>
+                            </div>
                           </td>
                           <td className="p-2 font-medium text-slate-800">
                             <div className="truncate">{smartTranslate(goal.purpose)}</div>
