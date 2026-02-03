@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
 
 interface UsePDFReportOptions {
     filename?: string;
@@ -58,30 +58,20 @@ export const usePDFReport = () => {
                 for (let i = 0; i < pages.length; i++) {
                     const page = pages[i] as HTMLElement;
 
-                    // 3. Capture with html2canvas
-                    const canvas = await html2canvas(page, {
-                        scale: 2,
-                        useCORS: true,
-                        logging: false,
-                        allowTaint: true,
+                    // 3. Capture with html-to-image
+                    const imgData = await toPng(page, {
+                        quality: 0.95,
+                        pixelRatio: 2,
                         backgroundColor: '#ffffff',
-                        scrollX: 0,
-                        scrollY: 0,
-                        windowWidth: 1500, // Force a desktop-like window width
-                        letterRendering: 1,
-                        onclone: (clonedDoc) => {
-                            const clonedElement = clonedDoc.body.querySelector('.pdf-page') as HTMLElement;
-                            if (clonedElement) {
-                                clonedElement.style.fontVariantLigatures = 'none';
-                                (clonedElement.style as any).webkitFontSmoothing = 'antialiased';
-                            }
-                        }
-                    } as any);
-
-                    const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                        width: 1122, // 297mm @ 96dpi approx
+                        style: {
+                            fontVariantLigatures: 'none',
+                            WebkitFontSmoothing: 'antialiased'
+                        } as any
+                    });
 
                     if (i > 0) doc.addPage();
-                    doc.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight);
+                    doc.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight);
                 }
             } finally {
                 // 4. Cleanup
