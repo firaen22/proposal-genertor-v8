@@ -24,10 +24,18 @@ export default async function handler(req: Request) {
 
         // Launch Browser
         const browser = await puppeteer.launch({
-            args: chromium.args,
-            defaultViewport: { width: 1920, height: 1080 },
+            args: [
+                ...chromium.args,
+                "--hide-scrollbars",
+                "--disable-web-security",
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-gpu"
+            ],
+            defaultViewport: chromium.defaultViewport || { width: 1920, height: 1080 },
             executablePath: await chromium.executablePath(),
-            headless: true,
+            headless: chromium.headless || true,
         });
 
         const page = await browser.newPage();
