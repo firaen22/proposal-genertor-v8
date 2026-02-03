@@ -435,7 +435,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
 
                       // Dynamic density based on row count
                       const goalCount = data.scenarioC.goals.length;
-                      const paddingClass = goalCount > 8 ? 'py-1 px-2 text-xs' : goalCount > 7 ? 'py-1.5 px-2' : 'p-2';
+                      const paddingClass = goalCount > 8 ? 'py-1 px-2 text-xs' : goalCount > 7 ? 'py-1.5 px-2' : 'py-3 px-2';
 
                       return (
                         <tr key={idx} className="hover:bg-slate-50 transition-colors">
