@@ -303,7 +303,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
                   <div>
                     <h2 className="text-xs font-bold text-amber-600 uppercase mb-3 border-b border-amber-200 pb-1">{t.clientOverview}</h2>
                     <div className="mb-4">
-                      <div className="text-xl font-bold text-slate-800 mb-1 line-clamp-1">{data.client.name}</div>
+                      <div className="text-xl font-bold text-slate-800 mb-1 truncate pb-1 leading-relaxed">{data.client.name}</div>
                       <div className="text-xs text-slate-500">{t.entryAge}: <span className="font-bold text-slate-700">{data.client.age} {t.ageUnit}</span></div>
                     </div>
 
@@ -465,7 +465,9 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
                               {goal.genLabel || goal.generation || "Gen 1"}
                             </span>
                           </td>
-                          <td className="p-2 font-medium text-slate-800 line-clamp-1">{smartTranslate(goal.purpose)}</td>
+                          <td className="p-2 font-medium text-slate-800">
+                            <div className="truncate">{smartTranslate(goal.purpose)}</div>
+                          </td>
                           <td className="p-2 text-right font-mono text-amber-700 font-bold">{formatMoney(goal.amount)}</td>
                           <td className="p-2 text-right font-mono text-slate-500">{formatMoney(goal.cumulative || 0)}</td>
                           <td className="p-2 text-right font-mono text-slate-500">{formatMoney(goal.remainingValue || 0)}</td>
