@@ -56,10 +56,10 @@ const LegacyRoadmap = ({ t }: { t: any }) => (
         { id: 2, label: t.gen2, desc: t.gen2Desc, color: "bg-amber-500", text: "text-amber-600" },
         { id: 3, label: t.gen3, desc: t.gen3Desc, color: "bg-emerald-600", text: "text-emerald-700" }
       ].map(node => (
-        <div key={node.id} className="flex flex-col items-center z-10 bg-slate-50 px-4 py-1 rounded-lg">
-          <div className={`w-8 h-8 rounded-full ${node.color} text-white flex items-center justify-center font-bold text-sm border-2 border-white`} style={{ boxShadow: 'none' }}>{node.id}</div>
-          <div className={`text-[10px] font-bold ${node.text} mt-1`}>{node.label}</div>
-          <div className="text-[9px] text-slate-500">{node.desc}</div>
+        <div key={node.id} className="flex flex-col items-center z-10 bg-slate-50 px-4 py-0.5 rounded-lg">
+          <div className={`w-7 h-7 rounded-full ${node.color} text-white flex items-center justify-center font-bold text-xs border-2 border-white`} style={{ boxShadow: 'none' }}>{node.id}</div>
+          <div className={`text-[9px] font-bold ${node.text} mt-0.5`}>{node.label}</div>
+          <div className="text-[8px] text-slate-500">{node.desc}</div>
         </div>
       ))}
     </div>
@@ -403,17 +403,17 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
             {/* --- PAGE 2 --- */}
             <div
               className={`relative bg-white ${isPdfMode ? '' : 'shadow-2xl'} overflow-hidden pdf-page flex flex-col`}
-              style={{ width: '297mm', height: '210mm', padding: '15mm' }}
+              style={{ width: '297mm', height: '210mm', padding: '10mm 15mm' }}
             >
               <PageHeader t={t} />
 
-              <div className="mb-4">
-                <h3 className="text-sm font-bold text-amber-600 border-l-4 border-amber-500 pl-2 mb-3">{t.scenarioC}</h3>
+              <div className="mb-2">
+                <h3 className="text-sm font-bold text-amber-600 border-l-4 border-amber-500 pl-2 mb-2">{t.scenarioC}</h3>
                 <LegacyRoadmap t={t} />
               </div>
 
               {/* Goal Table */}
-              <div className="flex-1 min-h-0 bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-4">
+              <div className="flex-1 min-h-0 bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-2">
                 {/* Increased text-xs to text-sm */}
                 <table className="w-full text-sm">
                   <thead className="bg-slate-900 text-white uppercase tracking-wider">
@@ -436,26 +436,26 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
 
                       return (
                         <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                          <td className="p-2 font-bold text-slate-900">
+                          <td className="py-1 px-2 font-bold text-slate-900">
                             {startAge === endAge ? startAge : `${startAge} -${endAge} `}
                           </td>
-                          <td className="p-2 text-slate-500 whitespace-nowrap">
+                          <td className="py-1 px-2 text-slate-500 whitespace-nowrap">
                             {t.startYear} {goal.policyYearStart === goal.policyYearEnd ? goal.policyYearStart : `${goal.policyYearStart} -${goal.policyYearEnd} `} {t.year}
                           </td>
-                          <td className="p-2 align-middle">
+                          <td className="py-1 px-2 align-middle">
                             <div className="flex items-center">
-                              <span className={`inline-block px-2 py-1 rounded text-[10px] font-bold border whitespace-nowrap ${getGenBadgeStyle(goal.generation)}`}>
+                              <span className={`inline-block px-2 py-0.5 rounded text-[9px] font-bold border whitespace-nowrap ${getGenBadgeStyle(goal.generation)}`}>
                                 {goal.genLabel || goal.generation || "Gen 1"}
                               </span>
                             </div>
                           </td>
-                          <td className="p-2 font-medium text-slate-800">
+                          <td className="py-1 px-2 font-medium text-slate-800">
                             <div className="truncate">{smartTranslate(goal.purpose)}</div>
                           </td>
-                          <td className="p-2 text-right font-mono text-amber-700 font-bold">{formatMoney(goal.amount)}</td>
-                          <td className="p-2 text-right font-mono text-slate-500">{formatMoney(goal.cumulative || 0)}</td>
-                          <td className="p-2 text-right font-mono text-slate-500">{formatMoney(goal.remainingValue || 0)}</td>
-                          <td className="p-2 text-right font-bold text-emerald-600 pr-4">{totalReturn}</td>
+                          <td className="py-1 px-2 text-right font-mono text-amber-700 font-bold">{formatMoney(goal.amount)}</td>
+                          <td className="py-1 px-2 text-right font-mono text-slate-500">{formatMoney(goal.cumulative || 0)}</td>
+                          <td className="py-1 px-2 text-right font-mono text-slate-500">{formatMoney(goal.remainingValue || 0)}</td>
+                          <td className="py-1 px-2 text-right font-bold text-emerald-600 pr-4">{totalReturn}</td>
                         </tr>
                       );
                     })}
@@ -464,7 +464,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
               </div>
 
               {/* Promo Info */}
-              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 mb-6 flex-shrink-0">
+              <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 mb-2 flex-shrink-0">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-white p-2 rounded border border-slate-100 shadow-sm flex items-center justify-between whitespace-nowrap">
                     <div className="text-[10px] text-slate-400 uppercase font-bold mr-2">{t.rebate}</div>
