@@ -414,7 +414,6 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
 
               {/* Goal Table */}
               <div className="flex-1 min-h-0 bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-2">
-                {/* Increased text-xs to text-sm */}
                 <table className="w-full text-sm">
                   <thead className="bg-slate-900 text-white uppercase tracking-wider">
                     <tr>
@@ -434,28 +433,32 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
                       const endAge = data.client.age + goal.policyYearEnd;
                       const totalReturn = getReturnRate((goal.cumulative || 0) + (goal.remainingValue || 0));
 
+                      // Dynamic density based on row count
+                      const goalCount = data.scenarioC.goals.length;
+                      const paddingClass = goalCount > 8 ? 'py-0.5 px-2 text-xs' : goalCount > 6 ? 'py-1.5 px-2' : 'p-2';
+
                       return (
                         <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                          <td className="py-1 px-2 font-bold text-slate-900">
+                          <td className={`${paddingClass} font-bold text-slate-900`}>
                             {startAge === endAge ? startAge : `${startAge} -${endAge} `}
                           </td>
-                          <td className="py-1 px-2 text-slate-500 whitespace-nowrap">
+                          <td className={`${paddingClass} text-slate-500 whitespace-nowrap`}>
                             {t.startYear} {goal.policyYearStart === goal.policyYearEnd ? goal.policyYearStart : `${goal.policyYearStart} -${goal.policyYearEnd} `} {t.year}
                           </td>
-                          <td className="py-1 px-2 align-middle">
+                          <td className={`${paddingClass} align-middle`}>
                             <div className="flex items-center">
                               <span className={`inline-block px-2 py-0.5 rounded text-[9px] font-bold border whitespace-nowrap ${getGenBadgeStyle(goal.generation)}`}>
                                 {goal.genLabel || goal.generation || "Gen 1"}
                               </span>
                             </div>
                           </td>
-                          <td className="py-1 px-2 font-medium text-slate-800">
+                          <td className={`${paddingClass} font-medium text-slate-800`}>
                             <div className="truncate">{smartTranslate(goal.purpose)}</div>
                           </td>
-                          <td className="py-1 px-2 text-right font-mono text-amber-700 font-bold">{formatMoney(goal.amount)}</td>
-                          <td className="py-1 px-2 text-right font-mono text-slate-500">{formatMoney(goal.cumulative || 0)}</td>
-                          <td className="py-1 px-2 text-right font-mono text-slate-500">{formatMoney(goal.remainingValue || 0)}</td>
-                          <td className="py-1 px-2 text-right font-bold text-emerald-600 pr-4">{totalReturn}</td>
+                          <td className={`${paddingClass} text-right font-mono text-amber-700 font-bold`}>{formatMoney(goal.amount)}</td>
+                          <td className={`${paddingClass} text-right font-mono text-slate-500`}>{formatMoney(goal.cumulative || 0)}</td>
+                          <td className={`${paddingClass} text-right font-mono text-slate-500`}>{formatMoney(goal.remainingValue || 0)}</td>
+                          <td className={`${paddingClass} text-right font-bold text-emerald-600 pr-4`}>{totalReturn}</td>
                         </tr>
                       );
                     })}
