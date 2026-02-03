@@ -141,7 +141,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
     if (!contentRef.current) return;
     setIsPdfMode(true);
     // Give React a moment to update state (remove scaling etc if needed)
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     await generatePDFReport(contentRef.current, {
       filename: `${data.client.name}_Proposal.pdf`

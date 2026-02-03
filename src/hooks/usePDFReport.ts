@@ -49,6 +49,8 @@ export const usePDFReport = () => {
                     logging: false,
                     allowTaint: true,
                     backgroundColor: '#ffffff',
+                    scrollX: 0,
+                    scrollY: 0,
                     letterRendering: 1, // Fixes some kerning issues
                     onclone: (clonedDoc) => {
                         const clonedElement = clonedDoc.body.querySelector('.pdf-page') as HTMLElement;
