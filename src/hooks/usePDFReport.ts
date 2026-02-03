@@ -49,7 +49,7 @@ export const usePDFReport = () => {
                     logging: false,
                     allowTaint: true,
                     backgroundColor: '#ffffff',
-                    letterRendering: 1 as any, // Fixes some kerning issues, cast to any if type is missing
+                    letterRendering: 1, // Fixes some kerning issues
                     onclone: (clonedDoc) => {
                         const clonedElement = clonedDoc.body.querySelector('.pdf-page') as HTMLElement;
                         if (clonedElement) {
@@ -58,7 +58,8 @@ export const usePDFReport = () => {
                             (clonedElement.style as any).webkitFontSmoothing = 'antialiased';
                         }
                     }
-                });
+                } as any);
+
 
                 const imgData = canvas.toDataURL('image/jpeg', 1.0);
 
