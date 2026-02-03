@@ -439,7 +439,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
                           <td className="p-2 font-bold text-slate-900">
                             {startAge === endAge ? startAge : `${startAge} -${endAge} `}
                           </td>
-                          <td className="p-2 text-slate-500">
+                          <td className="p-2 text-slate-500 whitespace-nowrap">
                             {t.startYear} {goal.policyYearStart === goal.policyYearEnd ? goal.policyYearStart : `${goal.policyYearStart} -${goal.policyYearEnd} `} {t.year}
                           </td>
                           <td className="p-2 align-middle">
