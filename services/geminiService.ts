@@ -199,6 +199,16 @@ export const generateProposal = async (data: ProposalData): Promise<string> => {
   第20年: { 累计提取: ${data.scenarioB.year20.cumulative}, 剩余价值: ${data.scenarioB.year20.remaining} }
   第30年: { 累计提取: ${data.scenarioB.year30.cumulative}, 剩余价值: ${data.scenarioB.year30.remaining} }
   第40年: { 累计提取: ${data.scenarioB.year40.cumulative}, 剩余价值: ${data.scenarioB.year40.remaining} }
+情境C数据 (人生目标):
+${data.scenarioC.goals.map(g => {
+    // Map Generation to full Chinese label
+    let genLabel = g.generation;
+    if (g.generation === 'Gen 1') genLabel = "第一代: 创富";
+    if (g.generation === 'Gen 2') genLabel = "第二代: 传承";
+    if (g.generation === 'Gen 3') genLabel = "第三代: 基业长青";
+
+    return `  - 目标: "${g.purpose}", 世代: "${genLabel}", 开始: 第${g.policyYearStart}年, 结束: 第${g.policyYearEnd}年, 金额: ${g.amount}, 剩余价值: ${g.remainingValue}`;
+  }).join('\n')}
 推广优惠: 
   回赠: "${rebateString}"
   预缴利率: "${prepayString}"
