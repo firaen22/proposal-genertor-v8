@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ProposalData, ScenarioValue, ScenarioBValue, GoalEvent, Language } from '../types';
 import { TRANSLATIONS, HK_DATA_MAP } from '../constants';
+import { parsePDFProposal, getAvailableModels, validateApiKey } from '../services/geminiService';
 
 const GOAL_OPTIONS = [
   "大学教育基金",
@@ -41,16 +42,18 @@ const GoalInputRow: React.FC<GoalInputRowProps> = ({ goal, index, data, t, smart
             <input
               type="number"
               min="0"
-              value={goal.policyYearStart}
-              onChange={(e) => onChange(index, 'policyYearStart', Math.max(0, parseInt(e.target.value) || 0))}
+              value={goal.policyYearStart === 0 ? '' : goal.policyYearStart}
+              onChange={(e) => onChange(index, 'policyYearStart', e.target.value === '' ? 0 : parseInt(e.target.value))}
+              placeholder="0"
               className="w-full rounded border-slate-300 text-sm bg-white px-2 py-1 text-center"
             />
             <span className="text-slate-400">-</span>
             <input
               type="number"
               min="0"
-              value={goal.policyYearEnd}
-              onChange={(e) => onChange(index, 'policyYearEnd', Math.max(0, parseInt(e.target.value) || 0))}
+              value={goal.policyYearEnd === 0 ? '' : goal.policyYearEnd}
+              onChange={(e) => onChange(index, 'policyYearEnd', e.target.value === '' ? 0 : parseInt(e.target.value))}
+              placeholder="0"
               className="w-full rounded border-slate-300 text-sm bg-white px-2 py-1 text-center"
             />
           </div>
@@ -69,8 +72,9 @@ const GoalInputRow: React.FC<GoalInputRowProps> = ({ goal, index, data, t, smart
           <input
             type="number"
             min="0"
-            value={goal.amount}
-            onChange={(e) => onChange(index, 'amount', Math.max(0, parseInt(e.target.value) || 0))}
+            value={goal.amount === 0 ? '' : goal.amount}
+            onChange={(e) => onChange(index, 'amount', e.target.value === '' ? 0 : parseInt(e.target.value))}
+            placeholder="0"
             className="w-full rounded border-slate-300 text-sm bg-white"
           />
         </div>
@@ -88,8 +92,9 @@ const GoalInputRow: React.FC<GoalInputRowProps> = ({ goal, index, data, t, smart
           <input
             type="number"
             min="0"
-            value={goal.remainingValue || 0}
-            onChange={(e) => onChange(index, 'remainingValue', Math.max(0, parseInt(e.target.value) || 0))}
+            value={goal.remainingValue === 0 ? '' : goal.remainingValue}
+            onChange={(e) => onChange(index, 'remainingValue', e.target.value === '' ? 0 : parseInt(e.target.value))}
+            placeholder="0"
             className="w-full rounded border-slate-300 text-sm bg-white"
           />
         </div>
@@ -100,10 +105,11 @@ const GoalInputRow: React.FC<GoalInputRowProps> = ({ goal, index, data, t, smart
         <div className="w-48 flex-shrink-0">
           <label className="block text-xs text-slate-500 mb-1 font-bold">{t.generation}</label>
           <select
-            value={goal.generation || "Gen 1"}
+            value={goal.generation}
             onChange={(e) => onChange(index, 'generation', e.target.value)}
             className="w-full rounded border-slate-300 text-sm bg-white"
           >
+            <option value="" disabled>Select Generation</option>
             <option value="Gen 1">{t.gen1}: {t.gen1Short}</option>
             <option value="Gen 2">{t.gen2}: {t.gen2Short}</option>
             <option value="Gen 3">{t.gen3}: {t.gen3Desc}</option>
@@ -117,6 +123,8 @@ const GoalInputRow: React.FC<GoalInputRowProps> = ({ goal, index, data, t, smart
             onChange={(e) => onChange(index, 'purpose', e.target.value)}
             className="w-full rounded border-slate-300 text-sm bg-white"
           >
+
+            <option value="" disabled>Select Purpose</option>
             {GOAL_OPTIONS.map((opt) => (
               <option key={opt} value={opt}>
                 {smartTranslate(opt)}
@@ -150,6 +158,150 @@ interface InputFormProps {
 
 export const InputForm: React.FC<InputFormProps> = ({ data, onChange, onSubmit, lang }) => {
   const t = TRANSLATIONS[lang];
+  const [isUploading, setIsUploading] = useState(false);
+  const [customApiKey, setCustomApiKey] = useState('');
+  const [availableModels, setAvailableModels] = useState<string[]>(["gemini-2.0-flash-exp"]);
+  const [selectedModel, setSelectedModel] = useState("gemini-2.0-flash-exp");
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+  // Fetch models on init or api key change
+  React.useEffect(() => {
+    const fetchModels = async () => {
+      const models = await getAvailableModels(customApiKey);
+      if (models.length > 0) {
+        setAvailableModels(models);
+        // If current selected isn't in list (and list has items), default to first or keep if it looks valid
+        if (!models.includes(selectedModel) && models.length > 0) {
+          // Prefer 2.0 flash extension if available
+          const preferred = models.find(m => m.includes('2.0-flash')) || models[0];
+          setSelectedModel(preferred);
+        }
+      }
+    };
+    // Debounce slightly to avoid too many calls while typing
+    const timeout = setTimeout(fetchModels, 500);
+    return () => clearTimeout(timeout);
+  }, [customApiKey]);
+
+  const handleVerifyKey = async () => {
+    if (!customApiKey) return;
+    setIsVerifying(true);
+    setVerificationStatus('idle');
+
+    // Minimum delay for checking UX
+    const delayPromise = new Promise(resolve => setTimeout(resolve, 800));
+    const [isValid] = await Promise.all([validateApiKey(customApiKey), delayPromise]);
+
+    setIsVerifying(false);
+    setVerificationStatus(isValid ? 'success' : 'error');
+
+    // Reset status after 3 seconds
+    setTimeout(() => setVerificationStatus('idle'), 3000);
+  };
+
+  // --- PDF Autofill Handler ---
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const extractedData = await parsePDFProposal(file, customApiKey, selectedModel);
+      console.log("Extracted Data:", extractedData);
+
+      // Merge extracted data with current data
+      // We implement a deep merge or selective update here
+      const newData = { ...data };
+
+      if (extractedData.client) newData.client = { ...newData.client, ...extractedData.client };
+      if (extractedData.planName) newData.planName = extractedData.planName;
+      if (extractedData.premium) newData.premium = { ...newData.premium, ...extractedData.premium };
+
+      if (extractedData.scenarioA) {
+        if (extractedData.scenarioA.year10) newData.scenarioA.year10 = { ...newData.scenarioA.year10, ...extractedData.scenarioA.year10 };
+        if (extractedData.scenarioA.year20) newData.scenarioA.year20 = { ...newData.scenarioA.year20, ...extractedData.scenarioA.year20 };
+        if (extractedData.scenarioA.year30) newData.scenarioA.year30 = { ...newData.scenarioA.year30, ...extractedData.scenarioA.year30 };
+        if (extractedData.scenarioA.year40) newData.scenarioA.year40 = { ...newData.scenarioA.year40, ...extractedData.scenarioA.year40 };
+      }
+
+      if (extractedData.scenarioB) {
+        const annual = extractedData.scenarioB.annualWithdrawal !== undefined
+          ? extractedData.scenarioB.annualWithdrawal
+          : newData.scenarioB.annualWithdrawal;
+
+        const start = extractedData.scenarioB.withdrawalStartYear !== undefined
+          ? extractedData.scenarioB.withdrawalStartYear
+          : newData.scenarioB.withdrawalStartYear;
+
+        newData.scenarioB.annualWithdrawal = annual;
+        newData.scenarioB.withdrawalStartYear = start;
+
+        // Recalculate cumulatives
+        const calc = (targetPolicyYear: number) => {
+          if (targetPolicyYear < start) return 0;
+          return annual * (targetPolicyYear - start + 1);
+        };
+        newData.scenarioB.year10.cumulative = calc(10);
+        newData.scenarioB.year20.cumulative = calc(20);
+        newData.scenarioB.year30.cumulative = calc(30);
+        newData.scenarioB.year40.cumulative = calc(40);
+
+        // Helper to update remaining if present
+        const updateRemaining = (year: 'year10' | 'year20' | 'year30' | 'year40') => {
+          if (extractedData.scenarioB && extractedData.scenarioB[year] && extractedData.scenarioB[year].remaining !== undefined) {
+            newData.scenarioB[year].remaining = extractedData.scenarioB[year].remaining;
+          }
+        };
+        updateRemaining('year10');
+        updateRemaining('year20');
+        updateRemaining('year30');
+        updateRemaining('year40');
+      }
+
+      if (extractedData.scenarioC && extractedData.scenarioC.goals) {
+        // We'll append or replace. Let's replace for a clean slate if goals are found.
+        if (Array.isArray(extractedData.scenarioC.goals) && extractedData.scenarioC.goals.length > 0) {
+          // Ensure defaults for missing fields
+          const newGoals = extractedData.scenarioC.goals.map(g => ({
+            policyYearStart: g.policyYearStart || 0,
+            policyYearEnd: g.policyYearEnd || g.policyYearStart || 0,
+            amount: g.amount || 0,
+            cumulative: 0, // Will be recalc'd
+            remainingValue: g.remainingValue || 0,
+            // User requested to manually pick purpose and generation, so we default these to empty
+            purpose: "",
+            generation: ""
+          }));
+          // We need to trigger the cumulative calc logic, which is inside the component but hidden.
+          // We can reuse the logic if we extract it or just set it here.
+          // Since we are updating state, we can just set it and let the user interaction fix things,
+          // OR better, duplicate the simple cumulative logic here for correctness.
+
+          let runningTotal = 0;
+          // Sort by start year for consistency
+          newGoals.sort((a, b) => a.policyYearStart - b.policyYearStart);
+          const calculatedGoals = newGoals.map(goal => {
+            const duration = Math.max(1, goal.policyYearEnd - goal.policyYearStart + 1);
+            runningTotal += (goal.amount * duration);
+            return { ...goal, cumulative: runningTotal };
+          });
+
+          newData.scenarioC.goals = calculatedGoals as any; // Casting as we match the shape
+        }
+      }
+
+      onChange(newData);
+      alert("Autofill complete! Please review the data.");
+    } catch (error) {
+      console.error("Autofill failed:", error);
+      alert("Failed to extract data from PDF. Please try again or fill manually.");
+    } finally {
+      setIsUploading(false);
+      // Reset input value to allow re-uploading same file
+      event.target.value = '';
+    }
+  };
 
   const smartTranslate = (text: string) => {
     if (lang === 'zh-HK' && HK_DATA_MAP[text]) return HK_DATA_MAP[text];
@@ -240,8 +392,8 @@ export const InputForm: React.FC<InputFormProps> = ({ data, onChange, onSubmit, 
       amount: 0,
       cumulative: 0,
       remainingValue: 0,
-      purpose: GOAL_OPTIONS[0],
-      generation: "Gen 1"
+      purpose: "",
+      generation: ""
     };
 
     const newData = { ...data };
@@ -266,6 +418,87 @@ export const InputForm: React.FC<InputFormProps> = ({ data, onChange, onSubmit, 
         <span className="text-xs font-semibold bg-slate-100 text-slate-500 px-2 py-1 rounded">PRIVATE WEALTH PROPOSAL</span>
       </div>
 
+      {/* PDF Upload Section */}
+      <div className="mb-8 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-lg">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h3 className="text-sm font-bold text-blue-800 mb-1">AI Autofill</h3>
+            <p className="text-xs text-blue-600">Upload a proposal PDF to automatically fill this form.</p>
+          </div>
+          <div>
+            <label className={`cursor-pointer px-4 py-2 rounded-md text-sm font-medium text-white transition-colors flex items-center gap-2 ${isUploading ? 'bg-blue-300 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}>
+              {isUploading ? (
+                <>
+                  <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  Upload PDF
+                </>
+              )}
+              <input
+                type="file"
+                accept="application/pdf"
+                className="hidden"
+                onChange={handleFileUpload}
+                disabled={isUploading}
+              />
+            </label>
+          </div>
+        </div>
+
+        {/* API Key & Model Input */}
+        <div className="flex flex-col md:flex-row gap-3">
+          <div className="flex-1 flex items-center gap-2 bg-white/50 p-2 rounded border border-blue-100">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M18 8a6 6 0 01-7.743 5.743L10 14l-1 1-1 1H6v3H2v-4l6.5-6.5c.4-.4.4-1 0-1.414l-.086-.086c.365-1.544.127-3.127-.714-4.5A6 6 0 1118 8zM8 10a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+            </svg>
+            <input
+              type="password"
+              placeholder="Enter Custom Gemini API Key (Optional)"
+              value={customApiKey}
+              onChange={(e) => setCustomApiKey(e.target.value)}
+              className="flex-1 bg-transparent border-none text-xs text-blue-800 placeholder-blue-300 focus:ring-0"
+            />
+            <button
+              onClick={handleVerifyKey}
+              disabled={!customApiKey || isVerifying}
+              className={`text-xs px-3 py-1 rounded transition-colors disabled:opacity-50 font-medium border ${verificationStatus === 'success' ? 'bg-green-100 text-green-700 border-green-200' :
+                verificationStatus === 'error' ? 'bg-red-100 text-red-700 border-red-200' :
+                  'bg-blue-100 hover:bg-blue-200 text-blue-700 border-blue-200'
+                }`}
+            >
+              {isVerifying ? 'Checking...' :
+                verificationStatus === 'success' ? 'Valid! \u2705' :
+                  verificationStatus === 'error' ? 'Invalid \u274C' :
+                    'Verify'}
+            </button>
+          </div>
+
+          <div className="flex-1 flex items-center gap-2 bg-white/50 p-2 rounded border border-blue-100">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+            </svg>
+            <select
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value)}
+              className="flex-1 bg-transparent border-none text-xs text-blue-800 focus:ring-0"
+            >
+              {availableModels.map(m => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
       <div className="space-y-8">
 
         {/* Section 1: Basic Info */}
@@ -278,7 +511,7 @@ export const InputForm: React.FC<InputFormProps> = ({ data, onChange, onSubmit, 
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700">{t.entryAge}</label>
-              <input type="number" min="0" value={data.client.age} onChange={(e) => handleChange('client', 'age', Math.max(0, parseInt(e.target.value) || 0))} className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm bg-white" />
+              <input type="number" min="0" value={data.client.age === 0 ? '' : data.client.age} onChange={(e) => handleChange('client', 'age', e.target.value === '' ? 0 : parseInt(e.target.value))} placeholder="0" className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm bg-white" />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700">{t.planName}</label>
@@ -286,7 +519,7 @@ export const InputForm: React.FC<InputFormProps> = ({ data, onChange, onSubmit, 
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700">{t.totalPremium} ($)</label>
-              <input type="number" min="0" value={data.premium.total} onChange={(e) => handleChange('premium', 'total', Math.max(0, parseInt(e.target.value) || 0))} className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm bg-white" />
+              <input type="number" min="0" value={data.premium.total === 0 ? '' : data.premium.total} onChange={(e) => handleChange('premium', 'total', e.target.value === '' ? 0 : parseInt(e.target.value))} placeholder="0" className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm bg-white" />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700">{t.paymentType}</label>
@@ -335,8 +568,9 @@ export const InputForm: React.FC<InputFormProps> = ({ data, onChange, onSubmit, 
                   <input
                     type="number"
                     min="0"
-                    value={data.scenarioA[year].surrender}
-                    onChange={(e) => handleScenarioAChange(year, 'surrender', Math.max(0, parseInt(e.target.value) || 0))}
+                    value={data.scenarioA[year].surrender === 0 ? '' : data.scenarioA[year].surrender}
+                    onChange={(e) => handleScenarioAChange(year, 'surrender', e.target.value === '' ? 0 : parseInt(e.target.value))}
+                    placeholder="0"
                     className="w-full rounded border-slate-200 text-sm bg-white"
                   />
                 </div>
@@ -345,8 +579,9 @@ export const InputForm: React.FC<InputFormProps> = ({ data, onChange, onSubmit, 
                   <input
                     type="number"
                     min="0"
-                    value={data.scenarioA[year].death}
-                    onChange={(e) => handleScenarioAChange(year, 'death', Math.max(0, parseInt(e.target.value) || 0))}
+                    value={data.scenarioA[year].death === 0 ? '' : data.scenarioA[year].death}
+                    onChange={(e) => handleScenarioAChange(year, 'death', e.target.value === '' ? 0 : parseInt(e.target.value))}
+                    placeholder="0"
                     className="w-full rounded border-slate-200 text-sm bg-white"
                   />
                 </div>
@@ -361,11 +596,11 @@ export const InputForm: React.FC<InputFormProps> = ({ data, onChange, onSubmit, 
           <div className="grid grid-cols-2 gap-4 mb-4 bg-amber-50 p-4 rounded-md border border-amber-200">
             <div>
               <label className="block text-sm font-bold text-amber-800">{t.annualWithdrawal} ($)</label>
-              <input type="number" min="0" value={data.scenarioB.annualWithdrawal} onChange={(e) => handleScenarioBInput('annualWithdrawal', Math.max(0, parseInt(e.target.value) || 0))} className="mt-1 block w-full rounded-md border border-amber-300 px-3 py-2 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm bg-white" />
+              <input type="number" min="0" value={data.scenarioB.annualWithdrawal === 0 ? '' : data.scenarioB.annualWithdrawal} onChange={(e) => handleScenarioBInput('annualWithdrawal', e.target.value === '' ? 0 : parseInt(e.target.value))} placeholder="0" className="mt-1 block w-full rounded-md border border-amber-300 px-3 py-2 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm bg-white" />
             </div>
             <div>
               <label className="block text-sm font-bold text-amber-800">Start Year (Policy Year)</label>
-              <input type="number" min="0" value={data.scenarioB.withdrawalStartYear || 6} onChange={(e) => handleScenarioBInput('withdrawalStartYear', Math.max(0, parseInt(e.target.value) || 0))} className="mt-1 block w-full rounded-md border border-amber-300 px-3 py-2 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm bg-white" />
+              <input type="number" min="0" value={data.scenarioB.withdrawalStartYear === 0 ? '' : data.scenarioB.withdrawalStartYear} onChange={(e) => handleScenarioBInput('withdrawalStartYear', e.target.value === '' ? 0 : parseInt(e.target.value))} placeholder="0" className="mt-1 block w-full rounded-md border border-amber-300 px-3 py-2 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm bg-white" />
             </div>
           </div>
           <div className="grid grid-cols-1 gap-4">
@@ -378,7 +613,7 @@ export const InputForm: React.FC<InputFormProps> = ({ data, onChange, onSubmit, 
                 </div>
                 <div className="flex-1">
                   <label className="block text-xs text-slate-500">{t.remainingValue}</label>
-                  <input type="number" min="0" value={data.scenarioB[year].remaining} onChange={(e) => handleScenarioBValueChange(year, 'remaining', Math.max(0, parseInt(e.target.value) || 0))} className="w-full rounded border-slate-200 text-sm bg-white" />
+                  <input type="number" min="0" value={data.scenarioB[year].remaining === 0 ? '' : data.scenarioB[year].remaining} onChange={(e) => handleScenarioBValueChange(year, 'remaining', e.target.value === '' ? 0 : parseInt(e.target.value))} placeholder="0" className="w-full rounded border-slate-200 text-sm bg-white" />
                 </div>
               </div>
             ))}

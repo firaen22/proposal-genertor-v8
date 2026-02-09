@@ -6,29 +6,21 @@ export const INITIAL_DATA: ProposalData = {
   premium: { total: 38500, paymentType: "5年" },
   legacy: { secondOwner: true, successorInsured: true },
   scenarioA: {
-    year10: { surrender: 46519, death: 46519 },
-    year20: { surrender: 1021317, death: 1329944 },
-    year30: { surrender: 2606450, death: 2606450 },
-    year40: { surrender: 5200000, death: 5200000 },
+    year10: { surrender: 0, death: 0 },
+    year20: { surrender: 0, death: 0 },
+    year30: { surrender: 0, death: 0 },
+    year40: { surrender: 0, death: 0 },
   },
   scenarioB: {
-    annualWithdrawal: 35500,
+    annualWithdrawal: 0,
     withdrawalStartYear: 6,
-    year10: { cumulative: 177500, remaining: 549218 },
-    year20: { cumulative: 532500, remaining: 682880 },
-    year30: { cumulative: 887500, remaining: 862885 },
-    year40: { cumulative: 1242500, remaining: 1197686 },
+    year10: { cumulative: 0, remaining: 0 },
+    year20: { cumulative: 0, remaining: 0 },
+    year30: { cumulative: 0, remaining: 0 },
+    year40: { cumulative: 0, remaining: 0 },
   },
   scenarioC: {
-    goals: [
-      { policyYearStart: 19, policyYearEnd: 22, amount: 95062, cumulative: 380248, remainingValue: 1099791, purpose: "大学教育基金", generation: "Gen 1", genLabel: "第一代: 创富" },
-      { policyYearStart: 23, policyYearEnd: 23, amount: 124570, cumulative: 504818, remainingValue: 777940, purpose: "外国升学基金", generation: "Gen 1", genLabel: "第一代: 创富" },
-      { policyYearStart: 30, policyYearEnd: 30, amount: 198252, cumulative: 703070, remainingValue: 1021397, purpose: "结婚/创业金", generation: "Gen 1", genLabel: "第一代: 创富" },
-      { policyYearStart: 65, policyYearEnd: 85, amount: 2461159, cumulative: 52387409, remainingValue: 4801944, purpose: "退休基金", generation: "Gen 1", genLabel: "第一代: 享受" },
-      { policyYearStart: 80, policyYearEnd: 80, amount: 7621122, cumulative: 60008531, remainingValue: 9537610, purpose: "传承予子女", generation: "Gen 2", genLabel: "第二代: 传承" },
-      { policyYearStart: 90, policyYearEnd: 90, amount: 15995028, cumulative: 76003559, remainingValue: 20034946, purpose: "家族遗产", generation: "Gen 3", genLabel: "第三代: 永续" },
-      { policyYearStart: 100, policyYearEnd: 100, amount: 32461656, cumulative: 108465215, remainingValue: 40676436, purpose: "百年基业", generation: "Gen 3", genLabel: "第三代: 永续" },
-    ]
+    goals: []
   },
   promo: {
     lumpSum: { enabled: true, percent: 2 },
