@@ -137,6 +137,13 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
     return "bg-emerald-100 text-emerald-800 border-emerald-200";
   };
 
+  const getGenLabel = (gen?: string) => {
+    const safeGen = gen || "Gen 1";
+    if (safeGen.includes("Gen 1")) return `${t.gen1} ${t.gen1Desc}`;
+    if (safeGen.includes("Gen 2")) return `${t.gen2} ${t.gen2Desc}`;
+    return `${t.gen3} ${t.gen3Desc}`;
+  };
+
   const generatePDF = async () => {
     if (!contentRef.current) return;
     setIsPdfMode(true);
@@ -448,7 +455,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
                           <td className={`${paddingClass} align-middle`}>
                             <div className="flex items-center">
                               <span className={`inline-block px-2 py-0.5 rounded text-[9px] font-bold border whitespace-nowrap ${getGenBadgeStyle(goal.generation)}`}>
-                                {goal.genLabel || goal.generation || "Gen 1"}
+                                {getGenLabel(goal.generation)}
                               </span>
                             </div>
                           </td>
