@@ -374,7 +374,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ data, onBack, lang
                     <div className="bg-amber-50 px-4 py-2 border-b border-amber-200 flex justify-between items-center">
                       <h3 className="text-base font-bold text-amber-800">{t.scenarioB}</h3>
                       <span className="text-sm text-amber-700 font-bold bg-white px-2 py-1 rounded border border-amber-200 shadow-sm whitespace-nowrap">
-                        {t.annualWithdrawal}: {formatMoney(data.scenarioB.annualWithdrawal)}
+                        {t.annualWithdrawal}: {formatMoney(data.scenarioB.annualWithdrawal)} ({t.startYear}{data.scenarioB.withdrawalStartYear}{t.endYear})
                       </span>
                     </div>
                     <table className="w-full text-base text-right">
