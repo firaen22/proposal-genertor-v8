@@ -4,6 +4,11 @@ import { ProposalData, Language } from '../types';
 import { TRANSLATIONS, HK_DATA_MAP } from '../constants';
 import { usePDFReport } from '../src/hooks/usePDFReport';
 
+const splitLabel = (s: string): [string, string] => {
+  const mid = Math.ceil(s.length / 2);
+  return [s.substring(0, mid), s.substring(mid)];
+};
+
 // --- Constants & Helper Types ---
 const YEAR_KEYS = ['year10', 'year20', 'year30', 'year40'] as const;
 const YEAR_VALS = [10, 20, 30, 40];
@@ -25,23 +30,23 @@ const Infographic = ({ t }: { t: any }) => (
 
       {/* Center Circle: Radius 40 */}
       <circle cx="0" cy="0" r="40" fill="#FFF8DC" stroke="#B8860B" strokeWidth="2" />
-      <text x="0" y="-6" textAnchor="middle" fontSize="15" fontWeight="bold" fill="#333" fontFamily="Noto Serif, serif">{t.wealthLegacy.substring(0, 2)}</text>
-      <text x="0" y="12" textAnchor="middle" fontSize="15" fontWeight="bold" fill="#333" fontFamily="Noto Serif, serif">{t.wealthLegacy.substring(2)}</text>
+      <text x="0" y="-6" textAnchor="middle" fontSize="15" fontWeight="bold" fill="#333" fontFamily="Noto Serif, serif">{splitLabel(t.wealthLegacy)[0]}</text>
+      <text x="0" y="12" textAnchor="middle" fontSize="15" fontWeight="bold" fill="#333" fontFamily="Noto Serif, serif">{splitLabel(t.wealthLegacy)[1]}</text>
 
       {/* Top Circle: Radius 35 */}
       <circle cx="0" cy="-90" r="35" fill="#212C3C" />
-      <text x="0" y="-95" textAnchor="middle" fontSize="12" fill="white" fontFamily="Noto Sans TC, sans-serif">{t.wealthGrowth.substring(0, 2)}</text>
-      <text x="0" y="-81" textAnchor="middle" fontSize="12" fill="white" fontFamily="Noto Sans TC, sans-serif">{t.wealthGrowth.substring(2)}</text>
+      <text x="0" y="-95" textAnchor="middle" fontSize="12" fill="white" fontFamily="Noto Sans TC, sans-serif">{splitLabel(t.wealthGrowth)[0]}</text>
+      <text x="0" y="-81" textAnchor="middle" fontSize="12" fill="white" fontFamily="Noto Sans TC, sans-serif">{splitLabel(t.wealthGrowth)[1]}</text>
 
       {/* Left Circle: Radius 35 */}
       <circle cx="-78" cy="55" r="35" fill="#212C3C" />
-      <text x="-78" y="50" textAnchor="middle" fontSize="12" fill="white" fontFamily="Noto Sans TC, sans-serif">{t.flexibleLegacy.substring(0, 2)}</text>
-      <text x="-78" y="64" textAnchor="middle" fontSize="12" fill="white" fontFamily="Noto Sans TC, sans-serif">{t.flexibleLegacy.substring(2)}</text>
+      <text x="-78" y="50" textAnchor="middle" fontSize="12" fill="white" fontFamily="Noto Sans TC, sans-serif">{splitLabel(t.flexibleLegacy)[0]}</text>
+      <text x="-78" y="64" textAnchor="middle" fontSize="12" fill="white" fontFamily="Noto Sans TC, sans-serif">{splitLabel(t.flexibleLegacy)[1]}</text>
 
       {/* Right Circle: Radius 35 */}
       <circle cx="78" cy="55" r="35" fill="#212C3C" />
-      <text x="78" y="50" textAnchor="middle" fontSize="12" fill="white" fontFamily="Noto Sans TC, sans-serif">{t.currencyConfig.substring(0, 2)}</text>
-      <text x="78" y="64" textAnchor="middle" fontSize="12" fill="white" fontFamily="Noto Sans TC, sans-serif">{t.currencyConfig.substring(2)}</text>
+      <text x="78" y="50" textAnchor="middle" fontSize="12" fill="white" fontFamily="Noto Sans TC, sans-serif">{splitLabel(t.currencyConfig)[0]}</text>
+      <text x="78" y="64" textAnchor="middle" fontSize="12" fill="white" fontFamily="Noto Sans TC, sans-serif">{splitLabel(t.currencyConfig)[1]}</text>
     </svg>
   </div>
 );
